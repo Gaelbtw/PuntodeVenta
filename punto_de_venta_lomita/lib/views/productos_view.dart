@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import '../controllers/producto_controller.dart';
 import '../models/producto.dart';
 
-class ProductosView extends StatefulWidget {
+class ProductosView extends StatefulWidget  {
   @override
   _ProductosViewState createState() => _ProductosViewState();
 }
 
+
+
 class _ProductosViewState extends State<ProductosView> {
-  final controller = ProductoController();
+  final controller = ProductoService();
   List<Producto> productos = [];
 
   @override
@@ -26,7 +28,7 @@ class _ProductosViewState extends State<ProductosView> {
 
   void agregar() async {
     await controller.insertar(
-      Producto(nombre: "Tortilla", descripcion: "Maiz", precio: 22)
+      Producto(idProducto: null, nombre: "Tortilla", descripcion: "Maiz", precio: 22)
     );
     cargar();
   }

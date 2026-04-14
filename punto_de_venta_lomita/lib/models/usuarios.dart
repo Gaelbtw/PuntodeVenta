@@ -1,11 +1,11 @@
 class Usuarios {
-  int id;
+  int idUsuario;
   String nombre;
   String contra;
   String rol;
 
   Usuarios({
-    required this.id,
+    required this.idUsuario,
     required this.nombre,
     required this.contra,
     required this.rol,
@@ -13,7 +13,7 @@ class Usuarios {
 
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
+      "id_usuario": idUsuario,
       "nombre": nombre,
       "contra": contra,
       "rol": rol,
@@ -22,7 +22,7 @@ class Usuarios {
 
    factory Usuarios.fromMap(Map<String, dynamic> map) {
     return Usuarios(
-      id: map["id"],
+      idUsuario: map["id_usuario"],
       nombre: map["nombre"],
       contra: map["contra"],
       rol: map["rol"],

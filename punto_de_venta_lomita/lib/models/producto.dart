@@ -1,5 +1,5 @@
 class Producto {
-  final int idProducto;
+  final int? idProducto;
   final String nombre;
   final String descripcion;
   final double precio;
