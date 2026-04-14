@@ -4,9 +4,17 @@ import '../models/producto.dart';
 class ProductoService {
 
   Future<int> insertar(Producto producto) async {
-    final db = await DatabaseHelper().database;
-    return await db.insert('Producto', producto.toMap());
-  }
+  final db = await DatabaseHelper().database;
+
+  int id = await db.insert('Producto', producto.toMap());
+
+  await db.insert('Inventario', {
+    "id_producto": id,
+    "cantidad": 0,
+  });
+
+  return id;
+}
 
   Future<List<Producto>> obtenerTodos() async {
     final db = await DatabaseHelper().database;

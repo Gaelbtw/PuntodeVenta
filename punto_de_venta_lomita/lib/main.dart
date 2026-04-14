@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:punto_de_venta_lomita/core/database/database_helper.dart';
+import 'views/home_view.dart';
+import 'views/login_view.dart';
 
 // Carga sqlite al iniciar la app
 void main() async {
@@ -17,7 +19,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      home: LoginView(),
       title: 'Flutter Demo',
+      //el que medio a mi fue
+      //title: 'POS',
+      //home: HomeView(),
       theme: ThemeData(
         // This is the theme of your application.
         //

@@ -5,7 +5,7 @@ class Producto {
   final double precio;
 
   const Producto({
-    required this.idProducto,
+    this.idProducto,
     required this.nombre,
     required this.descripcion,
     required this.precio,

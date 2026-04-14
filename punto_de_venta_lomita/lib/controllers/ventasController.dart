@@ -8,6 +8,35 @@ class VentasController {
     return await db.insert('Ventas', venta.toMap());
   }
 
+  Future<void> insertarVentaCompleta(int idProducto, int cantidad, double total) async {
+  final db = await DatabaseHelper().database;
+
+  await db.transaction((txn) async {
+    // 1. insertar ventas
+    int idVenta = await txn.insert('Ventas', {
+      "id_cliente": null,
+      "id_usuario": 1,S
+      "fecha": DateTime.now().toString(),
+      "total": total,
+    });
+
+    // 2. detalle venta
+    await txn.insert('Detalle_Venta', {
+      "id_venta": idVenta,
+      "id_producto": idProducto,
+      "cantidad": cantidad,
+      "precio": total,
+    });
+
+    // 3. actualizar inventario
+    await txn.rawUpdate('''
+      UPDATE Inventario 
+      SET cantidad = cantidad - ? 
+      WHERE id_producto = ?
+    ''', [cantidad, idProducto]);
+  });
+}
+
   Future<List<Ventas>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
     final result = await db.query('Ventas');
