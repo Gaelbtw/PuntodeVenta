@@ -19,7 +19,7 @@ class _ClientesViewState extends State<ClientesView> {
   final telefonoCtrl = TextEditingController();
   final correoCtrl = TextEditingController();
 
-  List<Cliente> lista = [];
+  List<Cliente> clientes = [];
 
   @override
   void initState() {
@@ -28,21 +28,24 @@ class _ClientesViewState extends State<ClientesView> {
   }
 
   void cargar() async {
-    lista = await controller.obtenerTodos();
-    setState(() {});
+    final data = await controller.obtenerTodos();
+    setState(() {
+      clientes = data;
+    });
   }
 
   void guardar() async {
     await controller.insertar(
       Cliente(
-        idCliente: lista.length + 1,
+        idCliente: null,
         nombre: nombreCtrl.text,
         direccion : direccionCtrl.text,
-        telefono: telefonoCtrl.text,
+        telefono: int.tryParse(telefonoCtrl.text),
         correo: correoCtrl.text,
         fechaRegistro: DateTime.now().toString()
       ),
     );
+
     cargar();
   }
 
@@ -58,7 +61,7 @@ class _ClientesViewState extends State<ClientesView> {
       body: Column(
         children: [
           TextField(controller: nombreCtrl, decoration: InputDecoration(labelText: "Nombre")),
-          TextField(controller: direccionCtrl, decoration:InputDecoration(labelText: "Nombre")),
+          TextField(controller: direccionCtrl, decoration:InputDecoration(labelText: "Direccion")),
           TextField(controller: telefonoCtrl, decoration: InputDecoration(labelText: "Teléfono")),
           TextField(controller: correoCtrl, decoration: InputDecoration(labelText: "Correo")),
 
@@ -66,15 +69,15 @@ class _ClientesViewState extends State<ClientesView> {
 
           Expanded(
             child: ListView.builder(
-              itemCount: lista.length,
+              itemCount: clientes.length,
               itemBuilder: (_, i) {
-                final c = lista[i];
+                final c = clientes[i];
                 return ListTile(
                   title: Text(c.nombre),
-                  subtitle: Text(c.telefono ), // ostia
+                  subtitle: Text(c.direccion), // ostia
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () => eliminar(c.idCliente),
+                    onPressed: () => eliminar(c.idCliente!),
                   ),
                 );
               },

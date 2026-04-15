@@ -2,7 +2,7 @@ class Proveedores {
   final int? idProveedor;
   final String nombre;
   final String direccion;
-  final int telefono;
+  final int? telefono;
 
   Proveedores({
     required this.idProveedor,
@@ -25,7 +25,7 @@ class Proveedores {
       idProveedor: map["id_proveedor"],
       nombre: map["nombre"],
       direccion: map["direccion"],
-      telefono: map["telefono"],
+      telefono: int.tryParse(map["telefono"].toString()) ?? 0,
     );
   }
 }

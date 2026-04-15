@@ -1,8 +1,8 @@
 class Cliente {
-  final int idCliente;
+  final int? idCliente;
   final String nombre;
   final String direccion;
-  final String telefono;
+  final int? telefono;
   final String correo;
   final String fechaRegistro;
 
@@ -31,7 +31,7 @@ class Cliente {
       idCliente: map["id_cliente"],
       nombre: map["nombre"],
       direccion: map["direccion"],
-      telefono: map["telefono"],
+      telefono: int.tryParse(map["telefono"].toString()) ?? 0,
       correo: map["correo"],
       fechaRegistro: map["fecha_registro"]
     );

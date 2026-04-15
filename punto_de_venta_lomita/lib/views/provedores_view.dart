@@ -19,7 +19,7 @@ class _ProveedorViewState extends State<ProveedorView> {
   final telefonoCtrl = TextEditingController();
   final direccionCtrl = TextEditingController();
 
-  List<Proveedores> lista = [];
+  List<Proveedores> proveedores = [];
 
   @override
   void initState() {
@@ -28,19 +28,28 @@ class _ProveedorViewState extends State<ProveedorView> {
   }
 
   void cargar() async {
-    lista = await controller.obtenerTodos();
-    setState(() {});
+    final data  = await controller.obtenerTodos();
+
+    setState(() {
+      proveedores = data;
+    });
   }
 
   void guardar() async {
-    await controller.insertar(
-      Proveedores(
+
+    final proveedor = Proveedores(
         idProveedor: null, 
         nombre: nombreCtrl.text, 
         direccion: direccionCtrl.text,
-        telefono: int.parse(telefonoCtrl.text)
-        )
-    );
+        telefono: int.tryParse(telefonoCtrl.text) 
+        );
+
+    await controller.insertar(proveedor);
+    
+    nombreCtrl.clear();
+    telefonoCtrl.clear();
+    direccionCtrl.clear();
+
     cargar();
   }
 
@@ -63,9 +72,9 @@ class _ProveedorViewState extends State<ProveedorView> {
 
           Expanded(
             child: ListView.builder(
-              itemCount: lista.length,
+              itemCount: proveedores.length,
               itemBuilder: (_, i) {
-                final p = lista[i];
+                final p = proveedores[i];
                 return ListTile(
                   title: Text(p.nombre),
                   trailing: IconButton(

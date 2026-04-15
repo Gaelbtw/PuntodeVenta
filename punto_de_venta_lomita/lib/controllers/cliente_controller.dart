@@ -5,12 +5,12 @@ class ClienteController {
 
   Future<int> insertar(Cliente cliente) async {
     final db = await DatabaseHelper().database;
-    return await db.insert('Cliente', cliente.toMap());
+    return await db.insert('Clientes', cliente.toMap());
   }
 
   Future<List<Cliente>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
-    final result = await db.query('Cliente');
+    final result = await db.query('Clientes');
 
     return result.map((e) => Cliente.fromMap(e)).toList();
   }
@@ -19,7 +19,7 @@ class ClienteController {
     final db = await DatabaseHelper().database;
 
     return await db.update(
-      'Cliente',
+      'Clientes',
       cliente.toMap(),
       where: 'id_cliente = ?',
       whereArgs: [cliente.idCliente],
@@ -30,7 +30,7 @@ class ClienteController {
     final db = await DatabaseHelper().database;
 
     return await db.delete(
-      'Cliente',
+      'Clientes',
       where: 'id_cliente = ?',
       whereArgs: [id],
     );

@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 4,
       onCreate: _onCreate,
     );
   }
@@ -34,7 +34,7 @@ class DatabaseHelper {
         id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         direccion TEXT,
-        telefono TEXT
+        telefono INTEGER
       );
     ''');
 
@@ -42,7 +42,7 @@ class DatabaseHelper {
       CREATE TABLE Usuarios (
         id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
-        contraseña TEXT NOT NULL,
+        contra TEXT NOT NULL,
         rol TEXT CHECK(rol IN ('Cajero','Admin')) NOT NULL
       );
     ''');
@@ -75,7 +75,7 @@ class DatabaseHelper {
         id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         direccion TEXT,
-        telefono TEXT,
+        telefono INTEGER,
         correo TEXT,
         fecha_registro DATE
       );
@@ -150,7 +150,7 @@ class DatabaseHelper {
     await db.execute ('''
       INSERT INTO Usuarios (
         nombre,
-        contraseña,
+        contra,
         rol
       ) VALUES ("Admin", "1234", "Admin");
     ''');

@@ -25,6 +25,7 @@ class _ProductosViewState extends State<ProductosView> {
 
   void cargar() async {
     final data = await controller.obtenerTodos();
+
     setState(() {
       productos = data;
     });

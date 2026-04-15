@@ -5,12 +5,12 @@ class ProveedorController {
 
   Future<int> insertar(Proveedores proveedor) async {
     final db = await DatabaseHelper().database;
-    return await db.insert('Proveedor', proveedor.toMap());
+    return await db.insert('Proveedores', proveedor.toMap());
   }
 
   Future<List<Proveedores>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
-    final result = await db.query('Proveedor');
+    final result = await db.query('Proveedores');
 
     return result.map((e) => Proveedores.fromMap(e)).toList();
   }
@@ -19,7 +19,7 @@ class ProveedorController {
     final db = await DatabaseHelper().database;
 
     return await db.update(
-      'Proveedor',
+      'Proveedores',
       proveedor.toMap(),
       where: 'id_proveedor = ?',
       whereArgs: [proveedor.idProveedor],
@@ -30,7 +30,7 @@ class ProveedorController {
     final db = await DatabaseHelper().database;
 
     return await db.delete(
-      'Proveedor',
+      'Proveedores',
       where: 'id_proveedor = ?',
       whereArgs: [id],
     );

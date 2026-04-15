@@ -16,7 +16,7 @@ class _UsuariosViewState extends State<UsuariosView> {
   final nombreCtrl = TextEditingController();
   final passCtrl = TextEditingController();
 
-  List<Usuarios> lista = [];
+  List<Usuarios> usuarios = [];
 
   @override
   void initState() {
@@ -25,25 +25,38 @@ class _UsuariosViewState extends State<UsuariosView> {
   }
 
   void cargar() async {
-    lista = await controller.obtenerTodos();
-    setState(() {});
+    final data = await controller.obtenerTodos();
+
+    setState(() {
+      usuarios = data;
+    });
   }
 
   void guardar() async {
-    await controller.insertar(
-      Usuarios(
+
+    final usuario = Usuarios(
         idUsuario: null, 
         nombre: nombreCtrl.text, 
         contra: passCtrl.text, 
-        rol: "Cajero"),
-    );
+        rol: "Cajero"
+        );
+
+    await controller.insertar(usuario);
+
+    nombreCtrl.clear();
+    passCtrl.clear();
+
     cargar();
   }
+
+
 
   void eliminar(int id) async {
     await controller.eliminar(id);
     cargar();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +71,16 @@ class _UsuariosViewState extends State<UsuariosView> {
 
           Expanded(
             child: ListView.builder(
-              itemCount: lista.length,
-              itemBuilder: (_, i) {
-                final u = lista[i];
+              itemCount: usuarios.length,
+              itemBuilder: (context, i) {
+                final u = usuarios[i];
                 return ListTile(
                   title: Text(u.nombre),
+
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
                     onPressed: () => eliminar(u.idUsuario!),
+
                   ),
                 );
               },
