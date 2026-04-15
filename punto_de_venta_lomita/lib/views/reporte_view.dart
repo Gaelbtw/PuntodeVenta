@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/database/database_helper.dart';
 
 class ReporteView extends StatefulWidget {
+
+  const ReporteView ({super.key});
+  
   @override
   _ReporteViewState createState() => _ReporteViewState();
 }

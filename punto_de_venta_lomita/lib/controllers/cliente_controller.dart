@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/cliente.dart';
+import '../models/cliente_model.dart';
 
 class ClienteController {
 

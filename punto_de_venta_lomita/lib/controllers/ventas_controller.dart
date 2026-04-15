@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/ventas.dart'; 
+import '../models/ventas_model.dart'; 
 
 class VentasController {
 
@@ -15,7 +15,7 @@ class VentasController {
     // 1. insertar ventas
     int idVenta = await txn.insert('Ventas', {
       "id_cliente": null,
-      "id_usuario": 1,S
+      "id_usuario": 1,
       "fecha": DateTime.now().toString(),
       "total": total,
     });

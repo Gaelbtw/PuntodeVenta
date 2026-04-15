@@ -1,20 +1,25 @@
-import 'package:flutter/material.dart';
-import '../controllers/cliente_controller.dart';
-import '../models/cliente.dart';
+//import 'dart:ffi';
 
-class ClientesView extends StatefulWidget {
+import 'package:flutter/material.dart';
+import '../controllers/proveedor_controller.dart';
+import '../models/proveedores_model.dart';
+
+class ProveedorView extends StatefulWidget {
+  
+  const ProveedorView({super.key});
+  
   @override
-  _ClientesViewState createState() => _ClientesViewState();
+  _ProveedorViewState createState() => _ProveedorViewState();
 }
 
-class _ClientesViewState extends State<ClientesView> {
-  final controller = ClienteController();
+class _ProveedorViewState extends State<ProveedorView> {
+  final controller = ProveedorController();
 
   final nombreCtrl = TextEditingController();
   final telefonoCtrl = TextEditingController();
-  final correoCtrl = TextEditingController();
+  final direccionCtrl = TextEditingController();
 
-  List<Cliente> lista = [];
+  List<Proveedores> lista = [];
 
   @override
   void initState() {
@@ -29,12 +34,12 @@ class _ClientesViewState extends State<ClientesView> {
 
   void guardar() async {
     await controller.insertar(
-      Cliente(
-        idCliente: null,
-        nombre: nombreCtrl.text,
-        telefono: telefonoCtrl.text,
-        correo: correoCtrl.text,
-      ),
+      Proveedores(
+        idProveedor: null, 
+        nombre: nombreCtrl.text, 
+        direccion: direccionCtrl.text,
+        telefono: int.parse(telefonoCtrl.text)
+        )
     );
     cargar();
   }
@@ -47,12 +52,12 @@ class _ClientesViewState extends State<ClientesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Clientes")),
+      appBar: AppBar(title: Text("Proveedores")),
       body: Column(
         children: [
           TextField(controller: nombreCtrl, decoration: InputDecoration(labelText: "Nombre")),
           TextField(controller: telefonoCtrl, decoration: InputDecoration(labelText: "Teléfono")),
-          TextField(controller: correoCtrl, decoration: InputDecoration(labelText: "Correo")),
+          TextField(controller: direccionCtrl, decoration: InputDecoration(labelText: "Direccion")),
 
           ElevatedButton(onPressed: guardar, child: Text("Guardar")),
 
@@ -60,13 +65,12 @@ class _ClientesViewState extends State<ClientesView> {
             child: ListView.builder(
               itemCount: lista.length,
               itemBuilder: (_, i) {
-                final c = lista[i];
+                final p = lista[i];
                 return ListTile(
-                  title: Text(c.nombre),
-                  subtitle: Text(c.telefono ?? ""),
+                  title: Text(p.nombre),
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () => eliminar(c.idCliente!),
+                    onPressed: () => eliminar(p.idProveedor!),
                   ),
                 );
               },

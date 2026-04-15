@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+//import 'package:sqflite/sqflite.dart';
 import '../controllers/inventario_controller.dart';
-import '../models/inventario.dart';
+import '../models/inventario_model.dart';
 
 class InventarioView extends StatefulWidget {
+
+  const InventarioView ({super.key});
+
   @override
   _InventarioViewState createState() => _InventarioViewState();
 }
@@ -28,7 +32,10 @@ class _InventarioViewState extends State<InventarioView> {
 
   void guardar() async {
     await controller.insertar(
-      Inventario(idInventario: null, idProducto: int.parse(productoCtrl.text), cantidad: int.parse(cantidadCtrl.text)),
+      Inventario(
+        idInventario: lista.length + 1, 
+        idProducto: int.parse(productoCtrl.text), 
+        cantidad: int.parse(cantidadCtrl.text)),
     );
     cargar();
   }

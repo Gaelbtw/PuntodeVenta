@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+//import 'package:sqflite/sqflite.dart';
 import '../controllers/ventas_controller.dart';
 import '../controllers/producto_controller.dart';
-import '../models/producto.dart';
-import '../models/ventas.dart';
+import '../models/producto_model.dart';
+import '../models/ventas_model.dart';
 
 class VentasView extends StatefulWidget {
+
+  const VentasView ({super.key});
+
   @override
   _VentasViewState createState() => _VentasViewState();
 }
@@ -44,12 +48,13 @@ class _VentasViewState extends State<VentasView> {
   void vender() async {
     if (seleccionado == null || cantidadCtrl.text.isEmpty) return;
 
-    final venta = Ventas(
+    ventasController.insertar ( Ventas(
+      idVenta: null,
       idCliente: null,
       idUsuario: 1, // fijo por ahora
       fecha: DateTime.now().toString(),
       total: total,
-    );
+    ));
 
     await ventasController.insertarVentaCompleta(
     seleccionado!.idProducto!,

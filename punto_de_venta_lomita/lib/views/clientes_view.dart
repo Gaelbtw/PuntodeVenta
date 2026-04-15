@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
-import '../controllers/proveedor_controller.dart';
-import '../models/proveedor.dart';
+import '../controllers/cliente_controller.dart';
+import '../models/cliente_model.dart';
 
-class ProveedorView extends StatefulWidget {
+class ClientesView extends StatefulWidget {
+
+  const ClientesView ({super.key}); 
+
   @override
-  _ProveedorViewState createState() => _ProveedorViewState();
+  
+  _ClientesViewState createState() => _ClientesViewState();
 }
 
-class _ProveedorViewState extends State<ProveedorView> {
-  final controller = ProveedorController();
+class _ClientesViewState extends State<ClientesView> {
+  final controller = ClienteController();
 
   final nombreCtrl = TextEditingController();
+  final direccionCtrl = TextEditingController();
   final telefonoCtrl = TextEditingController();
+  final correoCtrl = TextEditingController();
 
-  List<Proveedor> lista = [];
+  List<Cliente> lista = [];
 
   @override
   void initState() {
@@ -28,7 +34,14 @@ class _ProveedorViewState extends State<ProveedorView> {
 
   void guardar() async {
     await controller.insertar(
-      Proveedor(idProveedor: null, nombre: nombreCtrl.text, telefono: telefonoCtrl.text),
+      Cliente(
+        idCliente: lista.length + 1,
+        nombre: nombreCtrl.text,
+        direccion : direccionCtrl.text,
+        telefono: telefonoCtrl.text,
+        correo: correoCtrl.text,
+        fechaRegistro: DateTime.now().toString()
+      ),
     );
     cargar();
   }
@@ -41,11 +54,13 @@ class _ProveedorViewState extends State<ProveedorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Proveedores")),
+      appBar: AppBar(title: Text("Clientes")),
       body: Column(
         children: [
           TextField(controller: nombreCtrl, decoration: InputDecoration(labelText: "Nombre")),
+          TextField(controller: direccionCtrl, decoration:InputDecoration(labelText: "Nombre")),
           TextField(controller: telefonoCtrl, decoration: InputDecoration(labelText: "Teléfono")),
+          TextField(controller: correoCtrl, decoration: InputDecoration(labelText: "Correo")),
 
           ElevatedButton(onPressed: guardar, child: Text("Guardar")),
 
@@ -53,12 +68,13 @@ class _ProveedorViewState extends State<ProveedorView> {
             child: ListView.builder(
               itemCount: lista.length,
               itemBuilder: (_, i) {
-                final p = lista[i];
+                final c = lista[i];
                 return ListTile(
-                  title: Text(p.nombre),
+                  title: Text(c.nombre),
+                  subtitle: Text(c.telefono ), // ostia
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () => eliminar(p.idProveedor!),
+                    onPressed: () => eliminar(c.idCliente),
                   ),
                 );
               },

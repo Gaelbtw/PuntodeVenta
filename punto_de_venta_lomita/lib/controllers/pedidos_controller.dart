@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/pedidos.dart';
+import '../models/pedidos_model.dart';
 
 class PedidosController {
 

@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/compras.dart';
+import '../models/compras_model.dart';
 
 class ComprasController {
 

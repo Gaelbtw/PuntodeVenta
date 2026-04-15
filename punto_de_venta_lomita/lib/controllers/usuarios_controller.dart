@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/usuarios.dart';
+import '../models/usuarios_model.dart';
 
 class UsuariosController {
 
@@ -14,6 +14,7 @@ class UsuariosController {
 
     return result.map((e) => Usuarios.fromMap(e)).toList();
   }
+
 
   Future<int> actualizar(Usuarios usuario) async {
     final db = await DatabaseHelper().database;

@@ -1,5 +1,5 @@
 class Usuarios {
-  int idUsuario;
+  int? idUsuario;
   String nombre;
   String contra;
   String rol;
@@ -20,7 +20,7 @@ class Usuarios {
     };
   }
 
-   factory Usuarios.fromMap(Map<String, dynamic> map) {
+  factory Usuarios.fromMap(Map<String, dynamic> map) {
     return Usuarios(
       idUsuario: map["id_usuario"],
       nombre: map["nombre"],

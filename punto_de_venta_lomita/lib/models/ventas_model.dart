@@ -1,6 +1,6 @@
 class Ventas {
-  final int idVenta;
-  final int idCliente;
+  final int? idVenta;
+  final int? idCliente;
   final int idUsuario;
   final String fecha;
   final double total;

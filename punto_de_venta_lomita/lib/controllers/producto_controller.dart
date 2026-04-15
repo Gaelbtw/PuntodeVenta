@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/producto.dart';
+import '../models/producto_model.dart';
 
 class ProductoService {
 

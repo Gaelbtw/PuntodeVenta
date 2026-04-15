@@ -144,5 +144,15 @@ class DatabaseHelper {
         FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)
       );
     ''');
+
+    // Insertar un usuario para probar 
+
+    await db.execute ('''
+      INSERT INTO Usuarios (
+        nombre,
+        contraseña,
+        rol
+      ) VALUES ("Admin", "1234", "Admin");
+    ''');
   }
 }

@@ -20,7 +20,7 @@ class Compras {
     };
   }
 
-   factory Compras.fromMap(Map<String, dynamic> map) {
+  factory Compras.fromMap(Map<String, dynamic> map) {
     return Compras(
       id: map["id"],
       producto: map["producto"],

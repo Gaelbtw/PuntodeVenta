@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../core/database/database_helper.dart';
 
 class CorteCajaView extends StatefulWidget {
+
+  const CorteCajaView ({super.key});
+  
   @override
   _CorteCajaViewState createState() => _CorteCajaViewState();
 }

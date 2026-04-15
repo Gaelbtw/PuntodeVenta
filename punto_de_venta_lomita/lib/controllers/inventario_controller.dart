@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/inventario.dart';
+import '../models/inventario_model.dart';
 
 class InventarioController {
 

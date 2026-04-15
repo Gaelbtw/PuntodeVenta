@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../controllers/usuarios_controller.dart';
-import '../models/usuarios.dart';
+import '../models/usuarios_model.dart';
 
 class UsuariosView extends StatefulWidget {
+
+  const UsuariosView ({super.key});
+
   @override
   _UsuariosViewState createState() => _UsuariosViewState();
 }
@@ -13,7 +16,7 @@ class _UsuariosViewState extends State<UsuariosView> {
   final nombreCtrl = TextEditingController();
   final passCtrl = TextEditingController();
 
-  List<Usuario> lista = [];
+  List<Usuarios> lista = [];
 
   @override
   void initState() {
@@ -28,7 +31,11 @@ class _UsuariosViewState extends State<UsuariosView> {
 
   void guardar() async {
     await controller.insertar(
-      Usuario(idUsuario: null, nombre: nombreCtrl.text, contraseña: passCtrl.text, rol: "Cajero"),
+      Usuarios(
+        idUsuario: null, 
+        nombre: nombreCtrl.text, 
+        contra: passCtrl.text, 
+        rol: "Cajero"),
     );
     cargar();
   }

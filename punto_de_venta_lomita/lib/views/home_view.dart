@@ -3,10 +3,15 @@ import 'productos_view.dart';
 import 'clientes_view.dart';
 import 'ventas_view.dart';
 import 'inventario_view.dart';
-import 'proveedor_view.dart';
+import 'provedores_view.dart';
 import 'usuarios_view.dart';
+import 'cortecaja_view.dart';
+import 'reporte_view.dart';
 
 class HomeView extends StatelessWidget {
+
+  const HomeView ({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,11 +44,11 @@ class HomeView extends StatelessWidget {
           ),
           ListTile(
             title: Text("Corte de Caja"),
-            onTap: () => Navigator.push(context,MaterialPageRoute(builder: (_) => CorteCajaView()),),
+            onTap: () => Navigator.push(context,MaterialPageRoute(builder: (_) => CorteCajaView())),
           ),
           ListTile(
             title: Text("Reportes"),
-            onTap: () => Navigator.push(context,MaterialPageRoute(builder: (_) => ReporteView()),),
+            onTap: () => Navigator.push(context,MaterialPageRoute(builder: (_) => ReporteView())),
           ),
         ],
       ),

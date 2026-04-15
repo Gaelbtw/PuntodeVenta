@@ -1,5 +1,5 @@
 import '../core/database/database_helper.dart';
-import '../models/proveedores.dart';
+import '../models/proveedores_model.dart';
 
 class ProveedorController {
 

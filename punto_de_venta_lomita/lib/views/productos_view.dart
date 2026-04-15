@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../controllers/producto_controller.dart';
-import '../models/producto.dart';
- 
+import '../models/producto_model.dart';
+
 class ProductosView extends StatefulWidget  {
+
+  const ProductosView ({super.key});
+
   @override
   _ProductosViewState createState() => _ProductosViewState();
 }
