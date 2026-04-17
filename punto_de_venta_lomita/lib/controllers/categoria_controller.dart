@@ -1,57 +1,57 @@
 import '../core/database/database_helper.dart';
-import '../models/cliente_model.dart';
+import '../models/categoria_model.dart';
 
-class ClienteController {
+class CategoriaController {
 
-  Future<int> insertar(Cliente cliente) async {
+  Future<int> insertar(Categoria categoria) async {
     final db = await DatabaseHelper().database;
-    return await db.insert('Clientes', cliente.toMap());
+    return await db.insert('Categorias', categoria.toMap());
   }
 
-  Future<List<Cliente>> obtenerTodos() async {
+  Future<List<Categoria>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
     final result = await db.query(
-      'Clientes',
+      'Categorias',
       orderBy: 'nombre ASC', 
       );
 
-    return result.map((e) => Cliente.fromMap(e)).toList();
+    return result.map((e) => Categoria.fromMap(e)).toList();
   }
 
-  Future<Cliente?> obtenerPorId(int id) async {
+  Future<Categoria?> obtenerPorId(int id) async {
     final db = await DatabaseHelper().database;
 
     final result = await db.query (
-      'Clientes',
+      'Categorias',
       whereArgs: [id], 
     );
 
     if(result.isNotEmpty) {
-      return Cliente.fromMap(result.first);
+      return Categoria.fromMap(result.first);
     }
     return null; 
   }
 
-  Future<List<Cliente>> buscar (String query) async {
+  Future<List<Categoria>> buscar (String query) async {
     final db = await DatabaseHelper().database;
 
     final result = await db.query (
-      'Clientes',
+      'Categorias',
       where: 'nombre Like ?',
       whereArgs: ['%$query%'],
     );
 
-    return result.map((e) => Cliente.fromMap(e)).toList();
+    return result.map((e) => Categoria.fromMap(e)).toList();
   }
 
-  Future<int> actualizar(Cliente cliente) async {
+  Future<int> actualizar(Categoria categoria) async {
     final db = await DatabaseHelper().database;
 
     return await db.update(
-      'Clientes',
-      cliente.toMap(),
-      where: 'id_cliente = ?',
-      whereArgs: [cliente.idCliente],
+      'Categorias',
+      categoria.toMap(),
+      where: 'id_categoria = ?',
+      whereArgs: [categoria.idCategoria],
     );
   }
 
@@ -59,8 +59,8 @@ class ClienteController {
     final db = await DatabaseHelper().database;
 
     return await db.delete(
-      'Clientes',
-      where: 'id_cliente = ?',
+      'Categorias',
+      where: 'id_categoria = ?',
       whereArgs: [id],
     );
   }

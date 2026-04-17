@@ -1,9 +1,9 @@
 class Cliente {
   final int? idCliente;
   final String nombre;
-  final String direccion;
+  final String? direccion;
   final int? telefono;
-  final String correo;
+  final String? correo;
   final String fechaRegistro;
 
   Cliente({

@@ -1,120 +1,388 @@
 import 'package:flutter/material.dart';
-//import 'package:sqflite/sqflite.dart';
 import '../controllers/ventas_controller.dart';
 import '../controllers/producto_controller.dart';
+import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
-import '../models/ventas_model.dart';
+import '../models/categoria_model.dart';
 
 class VentasView extends StatefulWidget {
-
-  const VentasView ({super.key});
+  const VentasView({super.key});
 
   @override
-  _VentasViewState createState() => _VentasViewState();
+  State<VentasView> createState() => _VentasViewState();
 }
 
 class _VentasViewState extends State<VentasView> {
   final ventasController = VentasController();
   final productoController = ProductoService();
+  final categoriaController = CategoriaController();
 
   List<Producto> productos = [];
-  Producto? seleccionado;
+  List<Categoria> categorias = [];
+  List<Map<String, dynamic>> carrito = [];
 
-  final cantidadCtrl = TextEditingController();
-  double total = 0;
+  int? categoriaSeleccionada;
+
+  String metodoPago = "efectivo";
+  final pagoCtrl = TextEditingController();
+  double cambio = 0;
+
+  String busqueda = "";
 
   @override
   void initState() {
     super.initState();
+    cargarCategorias();
     cargarProductos();
   }
 
+  // 🔹 CARGA DATOS
   void cargarProductos() async {
     final data = await productoController.obtenerTodos();
-    setState(() {
-      productos = data;
-    });
+    setState(() => productos = data);
   }
 
-  void calcularTotal() {
-    if (seleccionado != null && cantidadCtrl.text.isNotEmpty) {
-      final cantidad = int.parse(cantidadCtrl.text);
-      setState(() {
-        total = seleccionado!.precio * cantidad;
-      });
+  void cargarCategorias() async {
+    final data = await categoriaController.obtenerTodos();
+    setState(() => categorias = data);
+  }
+
+  void filtrarProductos(int? idCategoria) async {
+    if (idCategoria == null) {
+      cargarProductos();
+    } else {
+      final data =
+          await productoController.obtenerPorCategoria(idCategoria);
+      setState(() => productos = data);
     }
   }
 
-  void vender() async {
-    if (seleccionado == null || cantidadCtrl.text.isEmpty) return;
+  // 🔍 BUSCADOR
+  List<Producto> get productosFiltrados {
+    return productos.where((p) {
+      return p.nombre.toLowerCase().contains(busqueda.toLowerCase());
+    }).toList();
+  }
 
-    ventasController.insertar ( Ventas(
-      idVenta: null,
-      idCliente: null,
-      idUsuario: 1, // fijo por ahora
-      fecha: DateTime.now().toString(),
-      total: total,
-    ));
-
-    await ventasController.insertarVentaCompleta(
-    seleccionado!.idProducto!,
-    int.parse(cantidadCtrl.text),
-    total,
-  );
-
-    cantidadCtrl.clear();
-
+  // 🛒 CARRITO
+  void agregarProducto(Producto p) {
     setState(() {
-      seleccionado = null;
-      total = 0;
-    });
+      final index =
+          carrito.indexWhere((i) => i['id_producto'] == p.idProducto);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Venta registrada")),
-    );
+      if (index >= 0) {
+        carrito[index]['cantidad']++;
+      } else {
+        carrito.add({
+          "id_producto": p.idProducto,
+          "nombre": p.nombre,
+          "precio": p.precio,
+          "cantidad": 1,
+        });
+      }
+    });
+  }
+
+  void cambiarCantidad(int index, int delta) {
+    setState(() {
+      carrito[index]['cantidad'] += delta;
+      if (carrito[index]['cantidad'] <= 0) {
+        carrito.removeAt(index);
+      }
+    });
+  }
+
+  double get total =>
+      carrito.fold(0, (sum, item) => sum + item['precio'] * item['cantidad']);
+
+  // 💵 CAMBIO
+  void calcularCambio() {
+    final recibido = double.tryParse(pagoCtrl.text) ?? 0;
+    setState(() => cambio = recibido - total);
+  }
+
+  // 💰 VENDER
+  void vender() async {
+    if (carrito.isEmpty) return;
+
+    if (metodoPago == "efectivo") {
+      final recibido = double.tryParse(pagoCtrl.text) ?? 0;
+      if (recibido < total) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Dinero insuficiente")),
+        );
+        return;
+      }
+    }
+
+    try {
+      await ventasController.insertarVentaCompleta(
+        carrito,
+        total,
+        metodoPago,
+      );
+
+      setState(() {
+        carrito.clear();
+        pagoCtrl.clear();
+        cambio = 0;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Venta realizada")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Ventas")),
-      body: Column(
-        children: [
-          DropdownButton<Producto>(
-            hint: Text("Selecciona producto"),
-            value: seleccionado,
-            onChanged: (value) {
-              setState(() {
-                seleccionado = value;
-              });
-              calcularTotal();
-            },
-            items: productos.map((p) {
-              return DropdownMenuItem(
-                value: p,
-                child: Text(p.nombre),
-              );
-            }).toList(),
-          ),
+      backgroundColor: const Color(0xFFF4F5F7),
+      appBar: AppBar(title: const Text("Punto de Venta")),
 
-          TextField(
-            controller: cantidadCtrl,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: "Cantidad"),
-            onChanged: (_) => calcularTotal(),
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // 🔹 IZQUIERDA (PRODUCTOS)
+            Expanded(
+              flex: 7,
+              child: Column(
+                children: [
+                  // 🔍 BUSCADOR
+                  TextField(
+                    onChanged: (v) => setState(() => busqueda = v),
+                    decoration: InputDecoration(
+                      hintText: "Buscar producto...",
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
 
-          SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-          Text("Total: \$${total.toStringAsFixed(2)}"),
+                  // 🟡 CATEGORÍAS
+                  SizedBox(
+                    height: 50,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        ChoiceChip(
+                          label: const Text("Todos"),
+                          selected: categoriaSeleccionada == null,
+                          onSelected: (_) {
+                            setState(() => categoriaSeleccionada = null);
+                            cargarProductos();
+                          },
+                        ),
 
-          SizedBox(height: 10),
+                        ...categorias.map((cat) {
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: ChoiceChip(
+                              label: Text(cat.nombre), // ✅ FIX
+                              selected:
+                                  categoriaSeleccionada == cat.idCategoria,
+                              onSelected: (_) {
+                                setState(() {
+                                  categoriaSeleccionada = cat.idCategoria;
+                                });
 
-          ElevatedButton(
-            onPressed: vender,
-            child: Text("Registrar venta"),
-          ),
-        ],
+                                filtrarProductos(cat.idCategoria!);
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // 🧾 PRODUCTOS
+                  Expanded(
+                    child: GridView.builder(
+                      itemCount: productosFiltrados.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.2,
+                      ),
+                      itemBuilder: (_, i) {
+                        final p = productosFiltrados[i];
+
+                        return GestureDetector(
+                          onTap: () => agregarProducto(p),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                )
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(p.nombre,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                const Spacer(),
+                                Text("\$${p.precio}"),
+                                const SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: () => agregarProducto(p),
+                                  child: const Text("Agregar"),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // 🔹 DERECHA (CARRITO)
+            Expanded(
+              flex: 3,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const Text("Detalle de Venta",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: carrito.length,
+                        itemBuilder: (_, i) {
+                          final item = carrito[i];
+
+                          return ListTile(
+                            title: Text(item['nombre']),
+                            subtitle: Text("\$${item['precio']}"),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () =>
+                                      cambiarCantidad(i, -1),
+                                  icon: const Icon(Icons.remove),
+                                ),
+                                Text(item['cantidad'].toString()),
+                                IconButton(
+                                  onPressed: () =>
+                                      cambiarCantidad(i, 1),
+                                  icon: const Icon(Icons.add),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const Divider(),
+
+                    // 💰 TOTAL
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Total"),
+                        Text("\$${total.toStringAsFixed(2)}",
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // 💳 MÉTODO
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () =>
+                                setState(() => metodoPago = "efectivo"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: metodoPago == "efectivo"
+                                  ? Colors.green
+                                  : null,
+                            ),
+                            child: const Text("Efectivo"),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () =>
+                                setState(() => metodoPago = "tarjeta"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: metodoPago == "tarjeta"
+                                  ? Colors.blue
+                                  : null,
+                            ),
+                            child: const Text("Tarjeta"),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (metodoPago == "efectivo") ...[
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: pagoCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Monto recibido",
+                        ),
+                        onChanged: (_) => calcularCambio(),
+                      ),
+                      const SizedBox(height: 5),
+                      Text("Cambio: \$${cambio.toStringAsFixed(2)}"),
+                    ],
+
+                    const SizedBox(height: 10),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: vender,
+                        child: const Text("Confirmar Venta"),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

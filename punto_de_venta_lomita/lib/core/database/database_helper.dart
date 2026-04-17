@@ -60,6 +60,13 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
+    CREATE TABLE Categorias (
+      id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL
+    );
+    ''');
+
+    await db.execute('''
       CREATE TABLE Detalle_Compra (
         id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
         id_compra INTEGER,
@@ -99,6 +106,7 @@ class DatabaseHelper {
         id_usuario INTEGER,
         fecha DATE,
         total REAL,
+        metodo_pago TEXT DEFAULT 'efectivo',
         FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente),
         FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario)
       );
@@ -121,7 +129,9 @@ class DatabaseHelper {
         id_producto INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
         descripcion TEXT,
-        precio REAL NOT NULL
+        precio REAL NOT NULL,
+        id_categoria INTEGER,
+        FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria)
       );
     ''');
 
