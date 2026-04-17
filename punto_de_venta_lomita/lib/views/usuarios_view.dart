@@ -3,89 +3,315 @@ import '../controllers/usuarios_controller.dart';
 import '../models/usuarios_model.dart';
 
 class UsuariosView extends StatefulWidget {
-
-  const UsuariosView ({super.key});
+  const UsuariosView({super.key});
 
   @override
-  _UsuariosViewState createState() => _UsuariosViewState();
+  State<UsuariosView> createState() => _UsuariosViewState();
 }
 
 class _UsuariosViewState extends State<UsuariosView> {
-  final controller = UsuariosController();
-
-  final nombreCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
+  final usuariosController = UsuariosController();
 
   List<Usuarios> usuarios = [];
+  String busqueda = "";
 
   @override
   void initState() {
     super.initState();
-    cargar();
+    cargarTodo();
   }
 
-  void cargar() async {
-    final data = await controller.obtenerTodos();
-
+  void cargarTodo() async {
+    final usr = await usuariosController.obtenerTodos();
     setState(() {
-      usuarios = data;
+      usuarios = usr;
     });
   }
 
-  void guardar() async {
-
-    final usuario = Usuarios(
-        idUsuario: null, 
-        nombre: nombreCtrl.text, 
-        contra: passCtrl.text, 
-        rol: "Cajero"
-        );
-
-    await controller.insertar(usuario);
-
-    nombreCtrl.clear();
-    passCtrl.clear();
-
-    cargar();
+  //  FILTRO
+  List<Usuarios> get filtrados {
+    return usuarios.where((u) {
+      return u.nombre
+          .toLowerCase()
+          .contains(busqueda.toLowerCase());
+    }).toList();
   }
 
+  //  AGREGAR
+  void mostrarAgregarUsuario() {
+    final nombreCtrl = TextEditingController();
+    final contraCtrl = TextEditingController();
+    String rolSeleccionado = "Cajero";
 
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Agregar Usuario"),
+        content: SizedBox(
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreCtrl,
+                decoration:
+                    const InputDecoration(labelText: "Nombre"),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: contraCtrl,
+                obscureText: true,
+                decoration:
+                    const InputDecoration(labelText: "Contraseña"),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: rolSeleccionado,
+                items: ["Admin", "Cajero"]
+                    .map((r) => DropdownMenuItem(
+                          value: r,
+                          child: Text(r),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  rolSeleccionado = value!;
+                },
+                decoration:
+                    const InputDecoration(labelText: "Rol"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nombreCtrl.text.isEmpty ||
+                  contraCtrl.text.isEmpty) return;
 
-  void eliminar(int id) async {
-    await controller.eliminar(id);
-    cargar();
+              await usuariosController.insertar(
+                Usuarios(
+                  idUsuario: null,
+                  nombre: nombreCtrl.text,
+                  contra: contraCtrl.text,
+                  rol: rolSeleccionado,
+                ),
+              );
+
+              Navigator.pop(context);
+              cargarTodo();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Usuario agregado")),
+              );
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
+      ),
+    );
   }
 
+  //  EDITAR
+  void mostrarEditarUsuario(Usuarios u) {
+    final nombreCtrl = TextEditingController(text: u.nombre);
+    final contraCtrl = TextEditingController(text: u.contra);
+    String rolSeleccionado = u.rol;
 
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Editar Usuario"),
+        content: SizedBox(
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreCtrl,
+                decoration:
+                    const InputDecoration(labelText: "Nombre"),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: contraCtrl,
+                decoration:
+                    const InputDecoration(labelText: "Contraseña"),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<String>(
+                value: rolSeleccionado,
+                items: ["Admin", "Cajero"]
+                    .map((r) => DropdownMenuItem(
+                          value: r,
+                          child: Text(r),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  rolSeleccionado = value!;
+                },
+                decoration:
+                    const InputDecoration(labelText: "Rol"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await usuariosController.actualizar(
+                Usuarios(
+                  idUsuario: u.idUsuario,
+                  nombre: nombreCtrl.text,
+                  contra: contraCtrl.text,
+                  rol: rolSeleccionado,
+                ),
+              );
+
+              Navigator.pop(context);
+              cargarTodo();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Usuario actualizado")),
+              );
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 🗑 ELIMINAR
+  void confirmarEliminar(Usuarios u) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Eliminar usuario"),
+        content: Text("¿Eliminar ${u.nombre}?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await usuariosController.eliminar(u.idUsuario!);
+
+              Navigator.pop(context);
+              cargarTodo();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Usuario eliminado")),
+              );
+            },
+            child: const Text("Eliminar"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Usuarios")),
-      body: Column(
-        children: [
-          TextField(controller: nombreCtrl, decoration: InputDecoration(labelText: "Nombre")),
-          TextField(controller: passCtrl, decoration: InputDecoration(labelText: "Contraseña")),
+      backgroundColor: const Color(0xFFF4F5F7),
 
-          ElevatedButton(onPressed: guardar, child: Text("Guardar")),
+      appBar: AppBar(
+        title: const Text("Usuarios"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: mostrarAgregarUsuario,
+          ),
+        ],
+      ),
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: usuarios.length,
-              itemBuilder: (context, i) {
-                final u = usuarios[i];
-                return ListTile(
-                  title: Text(u.nombre),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
 
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () => eliminar(u.idUsuario!),
-
-                  ),
-                );
-              },
+            // 🔍 BUSCADOR
+            TextField(
+              onChanged: (v) => setState(() => busqueda = v),
+              decoration: InputDecoration(
+                hintText: "Buscar usuario...",
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
-          )
+
+            const SizedBox(height: 20),
+
+            //  TABLA
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListView(
+                  children: [
+                    _headerTabla(),
+                    ...filtrados.map((u) => _filaUsuario(u)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _headerTabla() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: Colors.grey[200],
+      child: const Row(
+        children: [
+          Expanded(child: Text("Nombre")),
+          Expanded(child: Text("Rol")),
+          Expanded(child: Text("Acciones")),
+        ],
+      ),
+    );
+  }
+
+  Widget _filaUsuario(Usuarios u) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(child: Text(u.nombre)),
+          Expanded(child: Text(u.rol)),
+          Expanded(
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: () => mostrarEditarUsuario(u),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => confirmarEliminar(u),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

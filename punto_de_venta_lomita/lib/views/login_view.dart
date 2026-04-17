@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:punto_de_venta_lomita/controllers/authController.dart';
+import '../controllers/auth_controller.dart';
 import '../views/home_view.dart';
 //import 'home_view.dart';
 

@@ -57,7 +57,7 @@ class _VentasViewState extends State<VentasView> {
     }
   }
 
-  // 🔍 BUSCADOR
+  //  BUSCADOR
   List<Producto> get productosFiltrados {
     return productos.where((p) {
       return p.nombre.toLowerCase().contains(busqueda.toLowerCase());
@@ -95,13 +95,13 @@ class _VentasViewState extends State<VentasView> {
   double get total =>
       carrito.fold(0, (sum, item) => sum + item['precio'] * item['cantidad']);
 
-  // 💵 CAMBIO
+  //  CAMBIO
   void calcularCambio() {
     final recibido = double.tryParse(pagoCtrl.text) ?? 0;
     setState(() => cambio = recibido - total);
   }
 
-  // 💰 VENDER
+  //  VENDER
   void vender() async {
     if (carrito.isEmpty) return;
 
@@ -148,12 +148,12 @@ class _VentasViewState extends State<VentasView> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // 🔹 IZQUIERDA (PRODUCTOS)
+            //  IZQUIERDA (PRODUCTOS)
             Expanded(
               flex: 7,
               child: Column(
                 children: [
-                  // 🔍 BUSCADOR
+                  //  BUSCADOR
                   TextField(
                     onChanged: (v) => setState(() => busqueda = v),
                     decoration: InputDecoration(
@@ -170,7 +170,7 @@ class _VentasViewState extends State<VentasView> {
 
                   const SizedBox(height: 10),
 
-                  // 🟡 CATEGORÍAS
+                  //  CATEGORÍAS
                   SizedBox(
                     height: 50,
                     child: ListView(
@@ -189,7 +189,7 @@ class _VentasViewState extends State<VentasView> {
                           return Padding(
                             padding: const EdgeInsets.only(left: 8),
                             child: ChoiceChip(
-                              label: Text(cat.nombre), // ✅ FIX
+                              label: Text(cat.nombre), //  FIX
                               selected:
                                   categoriaSeleccionada == cat.idCategoria,
                               onSelected: (_) {
@@ -208,7 +208,7 @@ class _VentasViewState extends State<VentasView> {
 
                   const SizedBox(height: 10),
 
-                  // 🧾 PRODUCTOS
+                  //  PRODUCTOS
                   Expanded(
                     child: GridView.builder(
                       itemCount: productosFiltrados.length,
@@ -262,7 +262,7 @@ class _VentasViewState extends State<VentasView> {
 
             const SizedBox(width: 16),
 
-            // 🔹 DERECHA (CARRITO)
+            //  DERECHA (CARRITO)
             Expanded(
               flex: 3,
               child: Container(
@@ -309,7 +309,7 @@ class _VentasViewState extends State<VentasView> {
 
                     const Divider(),
 
-                    // 💰 TOTAL
+                    //  TOTAL
                     Row(
                       mainAxisAlignment:
                           MainAxisAlignment.spaceBetween,
@@ -323,7 +323,7 @@ class _VentasViewState extends State<VentasView> {
 
                     const SizedBox(height: 10),
 
-                    // 💳 MÉTODO
+                    //  MÉTODO
                     Row(
                       children: [
                         Expanded(
