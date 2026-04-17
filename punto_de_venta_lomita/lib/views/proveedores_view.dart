@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:punto_de_venta_lomita/views/agregar_producto_view.dart';
-import '../controllers/producto_controller.dart';
-import '../models/producto_model.dart';
+import '../controllers/proveedor_controller.dart';
+import '../models/proveedores_model.dart';
 
-class ProductosView extends StatefulWidget  {
-
-  const ProductosView ({super.key});
-
+class ProveedorView extends StatefulWidget {
+  const ProveedorView({super.key});
+  
   @override
-  _ProductosViewState createState() => _ProductosViewState();
+  _ProveedorViewState createState() => _ProveedorViewState();
 }
 
-class _ProductosViewState extends State<ProductosView> {
-  final controller = ProductoService();
+class _ProveedorViewState extends State<ProveedorView> {
+  final controller = ProveedorController();
+
   final nombreCtrl = TextEditingController();
-  final descCtrl = TextEditingController();
-  final precioCtrl = TextEditingController();
-  List<Producto> productos = [];
+  final telefonoCtrl = TextEditingController();
+  final direccionCtrl = TextEditingController();
+
+  List<Proveedores> proveedores = [];
 
   @override
   void initState() {
@@ -25,26 +25,27 @@ class _ProductosViewState extends State<ProductosView> {
   }
 
   void cargar() async {
-    final data = await controller.obtenerTodos();
+    final data  = await controller.obtenerTodos();
 
     setState(() {
-      productos = data;
+      proveedores = data;
     });
   }
 
   void guardar() async {
-    final producto = Producto(
-      idProducto: null,
-      nombre: nombreCtrl.text,
-      descripcion: descCtrl.text,
-      precio: double.parse(precioCtrl.text),
-    );
 
-    await controller.insertar(producto);
+    final proveedor = Proveedores(
+        idProveedor: null, 
+        nombre: nombreCtrl.text, 
+        direccion: direccionCtrl.text,
+        telefono: int.tryParse(telefonoCtrl.text) 
+        );
 
+    await controller.insertar(proveedor);
+    
     nombreCtrl.clear();
-    descCtrl.clear();
-    precioCtrl.clear();
+    telefonoCtrl.clear();
+    direccionCtrl.clear();
 
     cargar();
   }
@@ -58,7 +59,7 @@ class _ProductosViewState extends State<ProductosView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Productos"),
+        title: const Text("Proveedores"),
       ),
       body: Column(
         children: [
@@ -83,7 +84,7 @@ class _ProductosViewState extends State<ProductosView> {
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: "Buscar producto...",
+                      hintText: "Buscar proveedor...",
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -93,14 +94,7 @@ class _ProductosViewState extends State<ProductosView> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AgregarProductoView(),
-                      ),
-                    );
-                  },
+                  onPressed: guardar,
                   child: const Text("Agregar"),
                 ),
               ],
@@ -110,11 +104,12 @@ class _ProductosViewState extends State<ProductosView> {
           // 🔹 LISTA
           Expanded(
             child: ListView(
-              children: const [
-                _ItemProducto("Coca Cola", "\$25"),
-                _ItemProducto("Sabritas", "\$18"),
-                _ItemProducto("Galletas", "\$12"),
-              ],
+              children: proveedores.map((p) {
+                return _ItemProveedor(
+                  p.nombre,
+                  p.telefono?.toString() ?? "Sin teléfono",
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -149,17 +144,17 @@ class _CardInfo extends StatelessWidget {
 }
 
 // 🔸 ITEM LISTA
-class _ItemProducto extends StatelessWidget {
+class _ItemProveedor extends StatelessWidget {
   final String nombre;
-  final String precio;
+  final String rfc;
 
-  const _ItemProducto(this.nombre, this.precio);
+  const _ItemProveedor(this.nombre, this.rfc);
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(nombre),
-      subtitle: Text(precio),
+      subtitle: Text("RFC: $rfc"),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: const [

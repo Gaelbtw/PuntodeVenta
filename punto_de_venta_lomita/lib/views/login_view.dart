@@ -17,39 +17,47 @@ class _LoginViewState extends State<LoginView> {
   bool loading = false;
 
   void login() async {
-    if (usuarioController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Completa todos los campos")),
-      );
-      return;
-    }
+  print("Botón presionado");
 
-    setState(() {
-      loading = true;
-    });
-
-    final user = await authController.login(
-      usuarioController.text.trim(),
-      passwordController.text.trim(),
+  if (usuarioController.text.isEmpty || passwordController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Completa todos los campos")),
     );
-
-    setState(() {
-      loading = false;
-    });
-
-    if (user != null) {
-      // Login exitoso
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeView()),
-      );
-    } else {
-      // Error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Usuario o contraseña incorrectos")),
-      );
-    }
+    return;
   }
+
+  setState(() {
+    loading = true;
+  });
+
+  final user = await authController.login(
+    usuarioController.text.trim(),
+    passwordController.text.trim(),
+  );
+
+  print("Resultado DB: $user");
+
+  if (!mounted) return;
+
+  setState(() {
+    loading = false;
+  });
+
+  if (user != null) {
+    print("LOGIN DB OK");
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeView()),
+    );
+  } else {
+    print("LOGIN DB FAIL");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Usuario o contraseña incorrectos")),
+    );
+  }
+}
   @override
   void dispose() {
     usuarioController.dispose();

@@ -3,7 +3,7 @@ import 'productos_view.dart';
 import 'clientes_view.dart';
 import 'ventas_view.dart';
 import 'inventario_view.dart';
-import 'provedores_view.dart';
+import 'proveedores_view.dart';
 import 'usuarios_view.dart';
 import 'cortecaja_view.dart';
 import 'reporte_view.dart';
@@ -13,23 +13,20 @@ import '../widgets/menu_card.dart';
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
-  void logout(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginView()),
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Punto de Venta"),
+        title: const Text("HOME REAL"),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: "Cerrar sesión",
-            onPressed: () => logout(context),
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginView()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),

@@ -4,17 +4,16 @@ class Authcontroller {
   final dbHelper = DatabaseHelper();
 
   Future<Map<String, dynamic>?> login(String nombre, String password) async {
-    final db = await dbHelper.database;
+  final db = await dbHelper.database;
 
-    final result = await db.query(
-      'Usuarios',
-      where: 'nombre = ? AND contra = ?',
-      whereArgs: [nombre, password],
-    );
+  final result = await db.query(
+    'Usuarios',
+    where: 'LOWER(nombre) = ? AND contra = ?',
+    whereArgs: [nombre.toLowerCase(), password],
+  );
 
-    if (result.isNotEmpty) {
-      return result.first;
-    }
-    return null;
+  print("DB RESULT: $result");
+
+  return result.isNotEmpty ? result.first : null;
   }
 }

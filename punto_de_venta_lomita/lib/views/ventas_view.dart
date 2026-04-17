@@ -201,7 +201,7 @@ class _VentasViewState extends State<VentasView> {
                               },
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),
