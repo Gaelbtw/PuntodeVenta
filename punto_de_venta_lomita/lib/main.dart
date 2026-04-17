@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:punto_de_venta_lomita/core/database/database_helper.dart';
-
-
-import 'views/home_view.dart';
+//import 'views/home_view.dart';
 import 'views/login_view.dart';
 
 // Carga sqlite al iniciar la app
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await DatabaseHelper().database;
-
   runApp(const MyApp());
 }
 
@@ -21,12 +17,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'PUNTOVENTA',
+      debugShowCheckedModeBanner: false,
       home: LoginView(),
-      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       //el que medio a mi fue
       //title: 'POS',
       //home: HomeView(),
-      theme: ThemeData(
+      
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
@@ -42,13 +41,13 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        
       )
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+/*class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -132,4 +131,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
+}*/
