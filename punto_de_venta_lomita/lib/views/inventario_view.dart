@@ -224,7 +224,7 @@ class _InventarioViewState extends State<InventarioView> {
                               },
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),

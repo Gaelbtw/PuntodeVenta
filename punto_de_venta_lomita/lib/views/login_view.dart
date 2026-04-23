@@ -15,6 +15,7 @@ class _LoginViewState extends State<LoginView> {
   final authController = Authcontroller();
 
   bool loading = false;
+  bool ocultar = true;
 
   void login() async {
     if (usuarioController.text.isEmpty || passwordController.text.isEmpty) {
@@ -33,30 +34,40 @@ class _LoginViewState extends State<LoginView> {
       passwordController.text.trim(),
     );
 
+    if (!mounted) return;
+
     setState(() {
       loading = false;
     });
 
-    if (user != null) {
-      // Login exitoso
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Usuario incorrecto")),
+      );
+    } else if (user.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Contraseña incorrecta")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sesión iniciada")),
+      );
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeView()),
       );
-    } else {
-      // Error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Usuario o contraseña incorrectos")),
-      );
     }
   }
+
   @override
   void dispose() {
     usuarioController.dispose();
     passwordController.dispose();
     super.dispose();
   }
- @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -92,10 +103,20 @@ class _LoginViewState extends State<LoginView> {
 
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: ocultar,
+                  decoration: InputDecoration(
                     labelText: "Contraseña",
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        ocultar ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          ocultar = !ocultar;
+                        });
+                      },
+                    ),
                   ),
                 ),
 
@@ -111,7 +132,6 @@ class _LoginViewState extends State<LoginView> {
                         : const Text("Ingresar"),
                   ),
                 ),
-
               ],
             ),
           ),

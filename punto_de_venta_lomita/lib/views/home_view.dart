@@ -3,34 +3,32 @@ import 'productos_view.dart';
 import 'clientes_view.dart';
 import 'ventas_view.dart';
 import 'inventario_view.dart';
-import 'provedores_view.dart';
+import 'proveedores_view.dart';
 import 'usuarios_view.dart';
 import 'cortecaja_view.dart';
 import 'reporte_view.dart';
 import 'login_view.dart';
 import 'compras_view.dart';
 import '../widgets/menu_card.dart';
+import 'pedidos_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
-
-  void logout(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginView()),
-      (route) => false,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Punto de Venta"),
+        title: const Text("HOME REAL"),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: "Cerrar sesión",
-            onPressed: () => logout(context),
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginView()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),
@@ -148,6 +146,19 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(context,
                   MaterialPageRoute(builder: (_) => ComprasView()));
+              },
+            ),
+            
+            MenuCard(
+              title: "Pedidos",
+              subtitle: "Gestión de pedidos",
+              icon: Icons.receipt_long,
+              color: const Color(0xFFF3E1C7),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PedidosView()),
+                );
               },
             ),
           ],

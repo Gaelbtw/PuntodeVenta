@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controllers/ventas_controller.dart';
 import '../controllers/producto_controller.dart';
-import '../controllers/categoria_controller.dart';
+//import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
+<<<<<<< HEAD
 import '../models/categoria_model.dart';
 import '../widgets/custom_alert.dart';
 import '../models/cliente_model.dart';
@@ -10,6 +11,9 @@ import '../models/cliente_model.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import '../services/ticket_service.dart';
+=======
+//import '../models/categoria_model.dart';
+>>>>>>> 16db22c12add7cd37ee26f4f704773cb253b61d5
 
 class VentasView extends StatefulWidget {
   final Cliente? cliente;
@@ -23,12 +27,12 @@ class _VentasViewState extends State<VentasView> {
   
   final ventasController = VentasController();
   final productoController = ProductoService();
-  final categoriaController = CategoriaController();
+  //final categoriaController = CategoriaController();
 
   Cliente? clienteSeleccionado;
 
   List<Producto> productos = [];
-  List<Categoria> categorias = [];
+  //List<Categoria> categorias = [];
   List<Map<String, dynamic>> carrito = [];
 
   int? categoriaSeleccionada;
@@ -42,7 +46,7 @@ class _VentasViewState extends State<VentasView> {
   @override
   void initState() {
     super.initState();
-    cargarCategorias();
+    //cargarCategorias();
     cargarProductos();
 
     clienteSeleccionado = widget.cliente;
@@ -54,12 +58,12 @@ class _VentasViewState extends State<VentasView> {
     setState(() => productos = data);
   }
 
-  void cargarCategorias() async {
+  /*void cargarCategorias() async {
     final data = await categoriaController.obtenerTodos();
     setState(() => categorias = data);
-  }
+  }*/
 
-  void filtrarProductos(int? idCategoria) async {
+  /*void filtrarProductos(int? idCategoria) async {
     if (idCategoria == null) {
       cargarProductos();
     } else {
@@ -67,7 +71,7 @@ class _VentasViewState extends State<VentasView> {
           await productoController.obtenerPorCategoria(idCategoria);
       setState(() => productos = data);
     }
-  }
+  }*/
 
   //  BUSCADOR
   List<Producto> get productosFiltrados {
@@ -217,7 +221,7 @@ class _VentasViewState extends State<VentasView> {
                   const SizedBox(height: 10),
 
                   //  CATEGORÍAS
-                  SizedBox(
+                  /*SizedBox(
                     height: 50,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
@@ -243,14 +247,14 @@ class _VentasViewState extends State<VentasView> {
                                   categoriaSeleccionada = cat.idCategoria;
                                 });
 
-                                filtrarProductos(cat.idCategoria!);
+                                //filtrarProductos(cat.idCategoria!);
                               },
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
-                  ),
+                  ),*/
 
                   const SizedBox(height: 10),
 

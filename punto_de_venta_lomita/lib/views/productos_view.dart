@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import '../core/database/database_helper.dart';
 import '../controllers/producto_controller.dart';
 import '../models/producto_model.dart';
 
-class ProductosView extends StatefulWidget  {
-
-  const ProductosView ({super.key});
+class ProductosView extends StatefulWidget {
+  const ProductosView({super.key});
 
   @override
-  _ProductosViewState createState() => _ProductosViewState();
+  State<ProductosView> createState() => _ProductosViewState();
 }
 
 class _ProductosViewState extends State<ProductosView> {
   final controller = ProductoService();
+
   final nombreCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final precioCtrl = TextEditingController();
+
   List<Producto> productos = [];
 
   @override
@@ -26,27 +26,79 @@ class _ProductosViewState extends State<ProductosView> {
 
   void cargar() async {
     final data = await controller.obtenerTodos();
-
-    setState(() {
-      productos = data;
-    });
+    setState(() => productos = data);
   }
 
-  void guardar() async {
-    final producto = Producto(
-      idProducto: null,
-      nombre: nombreCtrl.text,
-      descripcion: descCtrl.text,
-      precio: double.parse(precioCtrl.text),
+  // 🔥 FORMULARIO
+  void mostrarFormulario({Producto? producto}) {
+    if (producto != null) {
+      nombreCtrl.text = producto.nombre;
+      descCtrl.text = producto.descripcion;
+      precioCtrl.text = producto.precio.toString();
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(producto == null ? "Nuevo Producto" : "Editar Producto"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nombreCtrl,
+              decoration: const InputDecoration(labelText: "Nombre"),
+            ),
+            TextField(
+              controller: descCtrl,
+              decoration: const InputDecoration(labelText: "Descripción"),
+            ),
+            TextField(
+              controller: precioCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Precio"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nombreCtrl.text.isEmpty || precioCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Completa los campos")),
+                );
+                return;
+              }
+
+              final nuevo = Producto(
+                idProducto: producto?.idProducto,
+                nombre: nombreCtrl.text,
+                descripcion: descCtrl.text,
+                precio: double.tryParse(precioCtrl.text) ?? 0,
+              );
+
+              if (producto == null) {
+                await controller.insertar(nuevo);
+              } else {
+                await controller.actualizar(nuevo);
+              }
+
+              Navigator.pop(context);
+
+              nombreCtrl.clear();
+              descCtrl.clear();
+              precioCtrl.clear();
+
+              cargar();
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
+      ),
     );
-
-    await controller.insertar(producto);
-
-    nombreCtrl.clear();
-    descCtrl.clear();
-    precioCtrl.clear();
-
-    cargar();
   }
 
   void eliminar(int id) async {
@@ -57,31 +109,79 @@ class _ProductosViewState extends State<ProductosView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Productos")),
+      appBar: AppBar(title: const Text("Productos")),
+
       body: Column(
         children: [
-          TextField(controller: nombreCtrl, decoration: InputDecoration(labelText: "Nombre")),
-          TextField(controller: descCtrl, decoration: InputDecoration(labelText: "Descripción")),
-          TextField(controller: precioCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: "Precio")),
 
-          ElevatedButton(onPressed: guardar, child: Text("Guardar")),
-
-          Expanded(
-            child: ListView.builder(
-              itemCount: productos.length,
-              itemBuilder: (context, index) {
-                final p = productos[index];
-                return ListTile(
-                  title: Text(p.nombre),
-                  subtitle: Text("\$${p.precio}"),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () => eliminar(p.idProducto!),
-                  ),
-                );
-              },
+          // 🔹 BOTÓN
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () => mostrarFormulario(),
+                child: const Text("Agregar Producto"),
+              ),
             ),
-          )
+          ),
+
+          // 🔹 LISTA REAL
+          Expanded(
+  child: GridView.builder(
+    padding: const EdgeInsets.all(10),
+    itemCount: productos.length,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 1.2,
+    ),
+    itemBuilder: (_, i) {
+      final p = productos[i];
+
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 4)
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              p.nombre,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const Spacer(),
+            Text("\$${p.precio}",
+                style: const TextStyle(fontSize: 16)),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => mostrarFormulario(producto: p),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => eliminar(p.idProducto!),
+                ),
+              ],
+            )
+          ],
+        ),
+      );
+    },
+  ),
+)
         ],
       ),
     );

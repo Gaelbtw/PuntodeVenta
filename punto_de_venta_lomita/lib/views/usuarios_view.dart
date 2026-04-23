@@ -66,7 +66,7 @@ class _UsuariosViewState extends State<UsuariosView> {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                value: rolSeleccionado,
+                initialValue: rolSeleccionado,
                 items: ["Admin", "Cajero"]
                     .map((r) => DropdownMenuItem(
                           value: r,
@@ -90,7 +90,9 @@ class _UsuariosViewState extends State<UsuariosView> {
           ElevatedButton(
             onPressed: () async {
               if (nombreCtrl.text.isEmpty ||
-                  contraCtrl.text.isEmpty) return;
+                  contraCtrl.text.isEmpty) {
+                return;
+              }
 
               await usuariosController.insertar(
                 Usuarios(
@@ -143,7 +145,7 @@ class _UsuariosViewState extends State<UsuariosView> {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                value: rolSeleccionado,
+                initialValue: rolSeleccionado,
                 items: ["Admin", "Cajero"]
                     .map((r) => DropdownMenuItem(
                           value: r,
