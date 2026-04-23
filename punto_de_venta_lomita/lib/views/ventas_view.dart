@@ -4,18 +4,28 @@ import '../controllers/producto_controller.dart';
 import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
 import '../models/categoria_model.dart';
+import '../widgets/custom_alert.dart';
+import '../models/cliente_model.dart';
+
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import '../services/ticket_service.dart';
 
 class VentasView extends StatefulWidget {
-  const VentasView({super.key});
+  final Cliente? cliente;
+  const VentasView({super.key, this.cliente});
 
   @override
   State<VentasView> createState() => _VentasViewState();
 }
 
 class _VentasViewState extends State<VentasView> {
+  
   final ventasController = VentasController();
   final productoController = ProductoService();
   final categoriaController = CategoriaController();
+
+  Cliente? clienteSeleccionado;
 
   List<Producto> productos = [];
   List<Categoria> categorias = [];
@@ -34,6 +44,8 @@ class _VentasViewState extends State<VentasView> {
     super.initState();
     cargarCategorias();
     cargarProductos();
+
+    clienteSeleccionado = widget.cliente;
   }
 
   // 🔹 CARGA DATOS
@@ -108,8 +120,13 @@ class _VentasViewState extends State<VentasView> {
     if (metodoPago == "efectivo") {
       final recibido = double.tryParse(pagoCtrl.text) ?? 0;
       if (recibido < total) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Dinero insuficiente")),
+        showDialog(
+          context: context, 
+          builder: (_) => CustomAlert(
+            titulo: 'VENTA', 
+            mensaje: 'Dinero insuficiente', 
+            icono: Icons.error
+            ),
         );
         return;
       }
@@ -120,7 +137,10 @@ class _VentasViewState extends State<VentasView> {
         carrito,
         total,
         metodoPago,
+        idCliente: clienteSeleccionado?.idCliente,
       );
+
+      await imprimirTicket(); 
 
       setState(() {
         carrito.clear();
@@ -128,9 +148,15 @@ class _VentasViewState extends State<VentasView> {
         cambio = 0;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Venta realizada")),
-      );
+      showDialog(
+        context: context, 
+        builder: (_) => CustomAlert(
+          titulo: 'VENTA', 
+          mensaje: 'Venta realizada con exito', 
+          icono: Icons.check
+          ),
+        );
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
@@ -138,11 +164,31 @@ class _VentasViewState extends State<VentasView> {
     }
   }
 
+// Funcion para imprimr tickets
+  Future<void> imprimirTicket() async {
+  final pdf = await TicketService.generarTicket(
+    carrito: carrito,
+    total: total,
+    metodoPago: metodoPago,
+    recibido : double.tryParse(pagoCtrl.text) ?? 0,
+    cambio : cambio 
+  );
+
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-      appBar: AppBar(title: const Text("Punto de Venta")),
+      appBar: AppBar(
+        
+        title: Text(
+          clienteSeleccionado != null
+        ? "Venta - ${clienteSeleccionado!.nombre}" :
+          "Punto de Venta")),
 
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -373,7 +419,23 @@ class _VentasViewState extends State<VentasView> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: vender,
+                        onPressed: () {
+                          if(carrito.isEmpty) return;
+
+                          showDialog(
+                            context: context, 
+                            builder: (_) => CustomAlert(
+                              titulo: "VENTA", 
+                              mensaje: "¿Deseas realizar la venta?", 
+                              icono: Icons.shield_outlined,
+                              textoCancelar: "Cancelar",
+                              textoConfirmar: "Confirmar",
+                              onConfirm: (){
+                                vender();
+                              },
+                              ),
+                            );
+                        },
                         child: const Text("Confirmar Venta"),
                       ),
                     )

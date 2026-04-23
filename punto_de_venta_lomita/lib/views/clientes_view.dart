@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:punto_de_venta_lomita/views/ventas_view.dart';
 import '../controllers/cliente_controller.dart';
 import '../models/cliente_model.dart';
 
@@ -233,7 +234,16 @@ class _ClientesViewState extends State<ClientesView> {
         const SizedBox(height: 20),
 
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () {
+            final cliente = clientes[selectedIndex!];
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => VentasView(cliente: cliente),
+                ),
+            );
+          },
           icon: const Icon(Icons.point_of_sale),
           label: const Text("Nueva Venta"),
         ),

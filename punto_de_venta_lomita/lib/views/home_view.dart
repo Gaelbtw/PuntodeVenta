@@ -8,6 +8,7 @@ import 'usuarios_view.dart';
 import 'cortecaja_view.dart';
 import 'reporte_view.dart';
 import 'login_view.dart';
+import 'compras_view.dart';
 import '../widgets/menu_card.dart';
 
 class HomeView extends StatelessWidget {
@@ -136,6 +137,17 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(context,
                   MaterialPageRoute(builder: (_) => ReporteView()));
+              },
+            ),
+
+            MenuCard(
+              title: "Compras",
+              subtitle: "Compras a proveedores",
+              icon: Icons.money,
+              color: const Color(0xFFEED5C4),
+              onTap: () {
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => ComprasView()));
               },
             ),
           ],

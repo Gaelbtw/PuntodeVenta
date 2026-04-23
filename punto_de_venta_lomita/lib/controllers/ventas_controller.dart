@@ -13,13 +13,14 @@ class VentasController {
     List<Map<String, dynamic>> carrito,
     double total,
     String metodoPago,
+    {int? idCliente}
   ) async {
     final db = await dbHelper.database;
 
     await db.transaction((txn) async {
     
       int idVenta = await txn.insert('Ventas', {
-        "id_cliente": null,
+        "id_cliente": idCliente,
         "id_usuario": 1, // luego puedes hacerlo dinámico
         "fecha": DateTime.now().toIso8601String(),
         "total": total,

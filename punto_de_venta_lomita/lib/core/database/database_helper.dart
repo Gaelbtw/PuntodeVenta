@@ -104,6 +104,7 @@ class DatabaseHelper {
         id_venta INTEGER PRIMARY KEY AUTOINCREMENT,
         id_cliente INTEGER,
         id_usuario INTEGER,
+        id_pedido INTEGER,
         fecha DATE,
         total REAL,
         metodo_pago TEXT DEFAULT 'efectivo',
