@@ -12,8 +12,6 @@ class Authcontroller {
     whereArgs: [nombre.toLowerCase(), password],
   );
 
-  print("DB RESULT: $result");
-
   return result.isNotEmpty ? result.first : null;
   }
 }

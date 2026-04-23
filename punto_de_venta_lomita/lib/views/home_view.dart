@@ -9,6 +9,7 @@ import 'cortecaja_view.dart';
 import 'reporte_view.dart';
 import 'login_view.dart';
 import '../widgets/menu_card.dart';
+import 'pedidos_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -133,6 +134,18 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(context,
                   MaterialPageRoute(builder: (_) => ReporteView()));
+              },
+            ),
+            MenuCard(
+              title: "Pedidos",
+              subtitle: "Gestión de pedidos",
+              icon: Icons.receipt_long,
+              color: const Color(0xFFF3E1C7),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PedidosView()),
+                );
               },
             ),
           ],

@@ -15,56 +15,59 @@ class _LoginViewState extends State<LoginView> {
   final authController = Authcontroller();
 
   bool loading = false;
+  bool ocultar = true;
 
   void login() async {
-  print("Botón presionado");
+    if (usuarioController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Completa todos los campos")),
+      );
+      return;
+    }
 
-  if (usuarioController.text.isEmpty || passwordController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Completa todos los campos")),
+    setState(() {
+      loading = true;
+    });
+
+    final user = await authController.login(
+      usuarioController.text.trim(),
+      passwordController.text.trim(),
     );
-    return;
+
+    if (!mounted) return;
+
+    setState(() {
+      loading = false;
+    });
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Usuario incorrecto")),
+      );
+    } else if (user.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Contraseña incorrecta")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sesión iniciada")),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeView()),
+      );
+    }
   }
 
-  setState(() {
-    loading = true;
-  });
-
-  final user = await authController.login(
-    usuarioController.text.trim(),
-    passwordController.text.trim(),
-  );
-
-  print("Resultado DB: $user");
-
-  if (!mounted) return;
-
-  setState(() {
-    loading = false;
-  });
-
-  if (user != null) {
-    print("LOGIN DB OK");
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeView()),
-    );
-  } else {
-    print("LOGIN DB FAIL");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Usuario o contraseña incorrectos")),
-    );
-  }
-}
   @override
   void dispose() {
     usuarioController.dispose();
     passwordController.dispose();
     super.dispose();
   }
- @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -100,10 +103,20 @@ class _LoginViewState extends State<LoginView> {
 
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: ocultar,
+                  decoration: InputDecoration(
                     labelText: "Contraseña",
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        ocultar ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          ocultar = !ocultar;
+                        });
+                      },
+                    ),
                   ),
                 ),
 
@@ -119,7 +132,6 @@ class _LoginViewState extends State<LoginView> {
                         : const Text("Ingresar"),
                   ),
                 ),
-
               ],
             ),
           ),

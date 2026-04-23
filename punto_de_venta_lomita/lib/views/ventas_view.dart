@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../controllers/ventas_controller.dart';
 import '../controllers/producto_controller.dart';
-import '../controllers/categoria_controller.dart';
+//import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
-import '../models/categoria_model.dart';
+//import '../models/categoria_model.dart';
 
 class VentasView extends StatefulWidget {
   const VentasView({super.key});
@@ -15,10 +15,10 @@ class VentasView extends StatefulWidget {
 class _VentasViewState extends State<VentasView> {
   final ventasController = VentasController();
   final productoController = ProductoService();
-  final categoriaController = CategoriaController();
+  //final categoriaController = CategoriaController();
 
   List<Producto> productos = [];
-  List<Categoria> categorias = [];
+  //List<Categoria> categorias = [];
   List<Map<String, dynamic>> carrito = [];
 
   int? categoriaSeleccionada;
@@ -32,7 +32,7 @@ class _VentasViewState extends State<VentasView> {
   @override
   void initState() {
     super.initState();
-    cargarCategorias();
+    //cargarCategorias();
     cargarProductos();
   }
 
@@ -42,12 +42,12 @@ class _VentasViewState extends State<VentasView> {
     setState(() => productos = data);
   }
 
-  void cargarCategorias() async {
+  /*void cargarCategorias() async {
     final data = await categoriaController.obtenerTodos();
     setState(() => categorias = data);
-  }
+  }*/
 
-  void filtrarProductos(int? idCategoria) async {
+  /*void filtrarProductos(int? idCategoria) async {
     if (idCategoria == null) {
       cargarProductos();
     } else {
@@ -55,7 +55,7 @@ class _VentasViewState extends State<VentasView> {
           await productoController.obtenerPorCategoria(idCategoria);
       setState(() => productos = data);
     }
-  }
+  }*/
 
   //  BUSCADOR
   List<Producto> get productosFiltrados {
@@ -171,7 +171,7 @@ class _VentasViewState extends State<VentasView> {
                   const SizedBox(height: 10),
 
                   //  CATEGORÍAS
-                  SizedBox(
+                  /*SizedBox(
                     height: 50,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
@@ -197,14 +197,14 @@ class _VentasViewState extends State<VentasView> {
                                   categoriaSeleccionada = cat.idCategoria;
                                 });
 
-                                filtrarProductos(cat.idCategoria!);
+                                //filtrarProductos(cat.idCategoria!);
                               },
                             ),
                           );
                         }),
                       ],
                     ),
-                  ),
+                  ),*/
 
                   const SizedBox(height: 10),
 

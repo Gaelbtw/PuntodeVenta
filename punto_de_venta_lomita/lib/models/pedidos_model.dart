@@ -1,14 +1,14 @@
 class Pedidos {
-  final int idPedido;
+  final int? idPedido;
   final int idCliente;
   final String fecha;
   final String estado;
-  
+
   Pedidos({
-    required this.idPedido,
+    this.idPedido,
     required this.idCliente,
     required this.fecha,
-    required this.estado
+    required this.estado,
   });
 
   Map<String, dynamic> toMap() {
@@ -16,7 +16,7 @@ class Pedidos {
       "id_pedido": idPedido,
       "id_cliente": idCliente,
       "fecha": fecha,
-      "estado": estado
+      "estado": estado,
     };
   }
 
@@ -25,7 +25,7 @@ class Pedidos {
       idPedido: map["id_pedido"],
       idCliente: map["id_cliente"],
       fecha: map["fecha"],
-      estado: map["estado"]
+      estado: map["estado"],
     );
   }
 }

@@ -44,18 +44,6 @@ class ProductoService {
     );
   }
 
-  Future <List<Producto>> obtenerPorCategoria(int idCategoria) async {
-  final db = await DatabaseHelper().database;
-    
-    final result = await db.query(
-    'Producto',
-    where: 'id_categoria = ?',
-    whereArgs: [idCategoria]
-    );
-
-    return result.map((e) => Producto.fromMap(e)).toList();
-  }
-
   Future<List<Map<String, dynamic>>> obtenerConStock() async {
     final db = await DatabaseHelper().database;
 
@@ -64,7 +52,6 @@ class ProductoService {
         Producto.id_producto,
         Producto.nombre,
         Producto.precio,
-        Producto.id_categoria,
         IFNULL(Inventario.cantidad, 0) as cantidad
       FROM Producto
       LEFT JOIN Inventario 
