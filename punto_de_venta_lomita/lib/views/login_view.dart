@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
+import '../core/session/session_manager.dart';
 import '../views/home_view.dart';
-//import 'home_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
-  @override 
+
+  @override
   State<LoginView> createState() => _LoginViewState();
 }
 
@@ -46,11 +47,17 @@ class _LoginViewState extends State<LoginView> {
       );
     } else if (user.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Contraseña incorrecta")),
+        const SnackBar(content: Text("Contrasena incorrecta")),
       );
     } else {
+      SessionManager.setUser(
+        id: user['id_usuario'] as int?,
+        nombre: user['nombre']?.toString() ?? 'Admin',
+        rol: user['rol']?.toString() ?? 'Administrador',
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Sesión iniciada")),
+        const SnackBar(content: Text("Sesion iniciada")),
       );
 
       Navigator.pushReplacement(
@@ -77,10 +84,8 @@ class _LoginViewState extends State<LoginView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-
                 const Icon(Icons.store, size: 80),
                 const SizedBox(height: 20),
-
                 const Text(
                   "Punto de Venta",
                   style: TextStyle(
@@ -88,9 +93,7 @@ class _LoginViewState extends State<LoginView> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
                 TextField(
                   controller: usuarioController,
                   decoration: const InputDecoration(
@@ -98,14 +101,12 @@ class _LoginViewState extends State<LoginView> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-
                 const SizedBox(height: 15),
-
                 TextField(
                   controller: passwordController,
                   obscureText: ocultar,
                   decoration: InputDecoration(
-                    labelText: "Contraseña",
+                    labelText: "Contrasena",
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -119,9 +120,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 SizedBox(
                   width: double.infinity,
                   height: 50,

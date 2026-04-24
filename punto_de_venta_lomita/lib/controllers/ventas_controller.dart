@@ -1,8 +1,11 @@
 import '../core/database/database_helper.dart';
+import '../core/session/session_manager.dart';
 import '../models/ventas_model.dart';
+import 'auditoria_controller.dart';
 
 class VentasController {
   final dbHelper = DatabaseHelper();
+  final _auditoriaController = AuditoriaController();
 
   Future<int> insertar(Ventas venta) async {
     final db = await dbHelper.database;
@@ -18,10 +21,9 @@ class VentasController {
     final db = await dbHelper.database;
 
     await db.transaction((txn) async {
-    
-      int idVenta = await txn.insert('Ventas', {
-        "id_cliente": idCliente,
-        "id_usuario": 1, // luego puedes hacerlo dinámico
+      final idVenta = await txn.insert('Ventas', {
+        "id_cliente": null,
+        "id_usuario": SessionManager.currentUserId ?? 1,
         "fecha": DateTime.now().toIso8601String(),
         "total": total,
         "metodo_pago": metodoPago,
@@ -41,14 +43,15 @@ class VentasController {
 
         if (disponible < item['cantidad']) {
           throw Exception(
-              "Stock insuficiente para producto ID ${item['id_producto']}");
+            "Stock insuficiente para producto ID ${item['id_producto']}",
+          );
         }
 
         await txn.insert('Detalle_Venta', {
           "id_venta": idVenta,
           "id_producto": item['id_producto'],
           "cantidad": item['cantidad'],
-          "precio": item['precio'], // precio unitario
+          "precio": item['precio'],
         });
 
         await txn.rawUpdate('''
@@ -60,6 +63,15 @@ class VentasController {
           item['id_producto']
         ]);
       }
+
+      await txn.insert('Auditorias', {
+        "fecha_hora": DateTime.now().toIso8601String(),
+        "usuario": SessionManager.currentUserName,
+        "tabla": "Ventas",
+        "accion": "CREATE",
+        "id_registro": idVenta,
+        "descripcion": "Nueva venta por \$${total.toStringAsFixed(2)}",
+      });
     });
   }
 
@@ -92,10 +104,21 @@ class VentasController {
   Future<int> eliminar(int id) async {
     final db = await dbHelper.database;
 
-    return await db.delete(
+    final rows = await db.delete(
       'Ventas',
       where: 'id_venta = ?',
       whereArgs: [id],
     );
+
+    if (rows > 0) {
+      await _auditoriaController.registrar(
+        tabla: 'Ventas',
+        accion: 'DELETE',
+        idRegistro: id,
+        descripcion: 'Venta eliminada',
+      );
+    }
+
+    return rows;
   }
 }
