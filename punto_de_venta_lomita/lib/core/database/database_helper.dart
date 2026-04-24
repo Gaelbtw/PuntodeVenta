@@ -2,33 +2,50 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static Database?_database;
+  static Database? _database;
+  static const _databaseName = 'pos.db';
 
   // Singleton una sola instancia, significa que solo habra una conexion a la base de datos para todo.
-  
+
   Future<Database> get database async {
-    if(_database != null) return _database!;
+    if (_database != null) return _database!;
     _database = await _initDB();
     return _database!;
   }
 
-  // Inicializar la base de datos 
+  Future<String> getDatabasePath() async {
+    return join(await getDatabasesPath(), _databaseName);
+  }
+
+  Future<String> getBackupDirectoryPath() async {
+    return join(await getDatabasesPath(), 'backups');
+  }
+
+  Future<void> closeDatabase() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+  }
+
+  // Inicializar la base de datos
 
   Future<Database> _initDB() async {
-    String path = join(await getDatabasesPath(), 'pos.db');
+    final path = await getDatabasePath();
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+      onOpen: _onOpen,
     );
   }
 
 
-  // Crear todas las tablas 
+  // Crear todas las tablas
 
   Future<void> _onCreate(Database db, int version) async {
-
     await db.execute('''
       CREATE TABLE Proveedores (
         id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +55,7 @@ class DatabaseHelper {
       );
     ''');
 
-    await db.execute ('''
+    await db.execute('''
       CREATE TABLE Usuarios (
         id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
@@ -60,10 +77,10 @@ class DatabaseHelper {
     ''');
 
     await db.execute('''
-    CREATE TABLE Categorias (
-      id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
-      nombre TEXT NOT NULL
-    );
+      CREATE TABLE Categorias (
+        id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL
+      );
     ''');
 
     await db.execute('''
@@ -95,9 +112,8 @@ class DatabaseHelper {
         fecha DATE,
         estado TEXT,
         FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente)
-      );  
+      );
     ''');
-
 
     await db.execute('''
       CREATE TABLE Ventas (
@@ -155,14 +171,83 @@ class DatabaseHelper {
       );
     ''');
 
+    await _ensureAuditoriasTable(db);
+
     // Insertar un usuario para probar 
 
-    await db.execute ('''
+    await db.execute('''
       INSERT INTO Usuarios (
         nombre,
         contra,
         rol
       ) VALUES ("Admin", "1234", "Admin");
     ''');
+
+    await _insertarAuditoriasDemo(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 5) {
+      await _ensureAuditoriasTable(db);
+      await _insertarAuditoriasDemo(db);
+    }
+  }
+
+  Future<void> _onOpen(Database db) async {
+    await _ensureAuditoriasTable(db);
+  }
+
+  Future<void> _ensureAuditoriasTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS Auditorias (
+        id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
+        fecha_hora TEXT NOT NULL,
+        usuario TEXT NOT NULL,
+        tabla TEXT NOT NULL,
+        accion TEXT NOT NULL,
+        id_registro INTEGER,
+        descripcion TEXT
+      );
+    ''');
+  }
+
+  Future<void> _insertarAuditoriasDemo(Database db) async {
+    final conteo = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM Auditorias'),
+    ) ??
+        0;
+
+    if (conteo > 0) return;
+
+    final auditoriasDemo = [
+      {
+        "fecha_hora": "2026-03-05T14:22:00",
+        "usuario": "Gael",
+        "tabla": "Productos",
+        "accion": "EDIT",
+        "id_registro": 1023,
+        "descripcion": "Precio actualizado",
+      },
+      {
+        "fecha_hora": "2026-03-05T13:10:00",
+        "usuario": "Jesus",
+        "tabla": "Ventas",
+        "accion": "CREATE",
+        "id_registro": 5562,
+        "descripcion": "Nueva venta",
+      },
+      {
+        "fecha_hora": "2026-03-05T12:45:00",
+        "usuario": "Gael",
+        "tabla": "Clientes",
+        "accion": "DELETE",
+        "id_registro": 221,
+        "descripcion": "Cliente eliminado",
+      },
+    ];
+
+    for (final auditoria in auditoriasDemo) {
+      await db.insert('Auditorias', auditoria);
+    }
   }
 }
