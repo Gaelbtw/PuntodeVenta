@@ -1,3 +1,4 @@
+import 'package:sqflite/sqflite.dart';
 import '../core/database/database_helper.dart';
 import '../models/proveedores_model.dart';
 
@@ -5,7 +6,19 @@ class ProveedorController {
 
   Future<int> insertar(Proveedores proveedor) async {
     final db = await DatabaseHelper().database;
-    return await db.insert('Proveedores', proveedor.toMap());
+
+    final data = proveedor.toMap();
+
+    // 🔥 QUITAR ID SI ES NULL (CLAVE)
+    data.remove('id_proveedor');
+
+    final result = await db.insert(
+      'Proveedores',
+      data,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    return result;
   }
 
   Future<List<Proveedores>> obtenerTodos() async {

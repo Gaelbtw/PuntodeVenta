@@ -50,8 +50,10 @@ class DatabaseHelper {
       CREATE TABLE Proveedores (
         id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
+        rfc TEXT,
         direccion TEXT,
-        telefono INTEGER
+        direccion_fiscal TEXT,
+        telefono TEXT
       );
     ''');
 

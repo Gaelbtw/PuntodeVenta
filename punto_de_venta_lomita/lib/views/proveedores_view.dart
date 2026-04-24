@@ -4,19 +4,16 @@ import '../models/proveedores_model.dart';
 
 class ProveedorView extends StatefulWidget {
   const ProveedorView({super.key});
-  
+
   @override
-  _ProveedorViewState createState() => _ProveedorViewState();
+  State<ProveedorView> createState() => _ProveedorViewState();
 }
 
 class _ProveedorViewState extends State<ProveedorView> {
   final controller = ProveedorController();
 
-  final nombreCtrl = TextEditingController();
-  final telefonoCtrl = TextEditingController();
-  final direccionCtrl = TextEditingController();
-
   List<Proveedores> proveedores = [];
+  List<Proveedores> filtrados = [];
 
   @override
   void initState() {
@@ -24,105 +21,108 @@ class _ProveedorViewState extends State<ProveedorView> {
     cargar();
   }
 
-
-  void mostrarFormulario({Proveedores? proveedor}) {
-
-  // 🔥 LIMPIAR SI ES NUEVO
-  if (proveedor == null) {
-    nombreCtrl.clear();
-    telefonoCtrl.clear();
-    direccionCtrl.clear();
-  } else {
-    nombreCtrl.text = proveedor.nombre;
-    telefonoCtrl.text = proveedor.telefono ?? "";
-    direccionCtrl.text = proveedor.direccion;
-  }
-
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text(proveedor == null ? "Nuevo proveedor" : "Editar proveedor"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nombreCtrl,
-            decoration: const InputDecoration(labelText: "Nombre"),
-          ),
-          TextField(
-            controller: telefonoCtrl,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: "Teléfono"),
-          ),
-          TextField(
-            controller: direccionCtrl,
-            decoration: const InputDecoration(labelText: "Dirección"),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancelar"),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-
-            if (nombreCtrl.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Nombre obligatorio")),
-              );
-              return;
-            }
-
-            final nuevo = Proveedores(
-              idProveedor: proveedor?.idProveedor,
-              nombre: nombreCtrl.text,
-              telefono: telefonoCtrl.text.isEmpty ? null : telefonoCtrl.text,
-              direccion: direccionCtrl.text,
-            );
-
-            if (proveedor == null) {
-              await controller.insertar(nuevo);
-            } else {
-              await controller.actualizar(nuevo);
-            }
-
-            Navigator.pop(context);
-
-            cargar();
-          },
-          child: const Text("Guardar"),
-        ),
-      ],
-    ),
-  );
-}
-
   void cargar() async {
-    final data  = await controller.obtenerTodos();
-
+    final data = await controller.obtenerTodos();
     setState(() {
       proveedores = data;
+      filtrados = data;
     });
   }
 
-  void guardar() async {
+  void buscar(String query) {
+    if (query.isEmpty) {
+      setState(() => filtrados = proveedores);
+      return;
+    }
 
-    final proveedor = Proveedores(
-        idProveedor: null, 
-        nombre: nombreCtrl.text, 
-        direccion: direccionCtrl.text,
-        telefono: telefonoCtrl.text
-        );
+    final resultado = proveedores.where((p) {
+      return p.nombre.toLowerCase().contains(query.toLowerCase()) ||
+             p.rfc.toLowerCase().contains(query.toLowerCase());
+    }).toList();
 
-    await controller.insertar(proveedor);
-    
-    nombreCtrl.clear();
-    telefonoCtrl.clear();
-    direccionCtrl.clear();
+    setState(() => filtrados = resultado);
+  }
 
-    cargar();
+  void abrirFormulario({Proveedores? proveedor}) {
+    final nombreCtrl = TextEditingController(text: proveedor?.nombre ?? "");
+    final rfcCtrl = TextEditingController(text: proveedor?.rfc ?? "");
+    final telefonoCtrl = TextEditingController(text: proveedor?.telefono ?? "");
+    final direccionCtrl = TextEditingController(text: proveedor?.direccion ?? "");
+    final direccionFiscalCtrl = TextEditingController(text: proveedor?.direccionFiscal ?? "");
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(proveedor == null ? "Agregar Proveedor" : "Editar Proveedor"),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
+              TextField(controller: rfcCtrl, decoration: const InputDecoration(labelText: "RFC")),
+              TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono")),
+              TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección")),
+              TextField(controller: direccionFiscalCtrl, decoration: const InputDecoration(labelText: "Dirección Fiscal")),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
+          ElevatedButton(
+            onPressed: () async {
+
+              if (nombreCtrl.text.isEmpty ||
+                  rfcCtrl.text.isEmpty ||
+                  telefonoCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Completa los campos")),
+                );
+                return;
+              }
+
+              if (telefonoCtrl.text.length < 10) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Teléfono inválido")),
+                );
+                return;
+              }
+
+              final existentes = await controller.obtenerTodos();
+
+              final duplicado = existentes.any((p) =>
+                p.nombre.toLowerCase() == nombreCtrl.text.toLowerCase() &&
+                p.idProveedor != proveedor?.idProveedor
+              );
+
+              if (duplicado) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Proveedor duplicado")),
+                );
+                return;
+              }
+
+              final nuevo = Proveedores(
+                idProveedor: proveedor?.idProveedor,
+                nombre: nombreCtrl.text,
+                rfc: rfcCtrl.text,
+                direccion: direccionCtrl.text,
+                direccionFiscal: direccionFiscalCtrl.text,
+                telefono: telefonoCtrl.text,
+              );
+
+              if (proveedor == null) {
+                await controller.insertar(nuevo);
+              } else {
+                await controller.actualizar(nuevo);
+              }
+
+              Navigator.pop(context);
+              cargar();
+            },
+            child: const Text("Guardar"),
+          )
+        ],
+      ),
+    );
   }
 
   void eliminar(int id) async {
@@ -133,122 +133,69 @@ class _ProveedorViewState extends State<ProveedorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Proveedores"),
-      ),
+      appBar: AppBar(title: const Text("Proveedores")),
       body: Column(
         children: [
 
-          // 🔹 TARJETAS
+          // 🔍 BUSCADOR
           Padding(
             padding: const EdgeInsets.all(10),
-            child: Row(
-              children: [
-                _CardInfo(titulo: "TOTAL", valor: proveedores.length.toString()),
-                _CardInfo(titulo: "CON TEL", valor: proveedores.where((p) => (p.telefono ?? "").isNotEmpty).length.toString()),
-                _CardInfo(titulo: "SIN TEL", valor: proveedores.where((p) => (p.telefono ?? "").isEmpty).length.toString()),
-              ],
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: "Buscar proveedor...",
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: buscar,
             ),
           ),
 
-          // 🔹 BUSCADOR + BOTÓN
+          // ➕ BOTÓN
           Padding(
             padding: const EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Buscar proveedor...",
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                  ),
-                  onPressed: () => mostrarFormulario(),
-                  child: const Text("Agregar"),
-                ),
-              ],
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => abrirFormulario(),
+                icon: const Icon(Icons.add),
+                label: const Text("Agregar Proveedor"),
+              ),
             ),
           ),
 
-          // 🔹 LISTA
+          // 📋 LISTA
           Expanded(
-            child: ListView(
-              children: proveedores.map((p) {
-                return _ItemProveedor(
-                  proveedor: p,
-                  onDelete: () => eliminar(p.idProveedor!),
-                  onEdit: () => mostrarFormulario(proveedor: p),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+            child: filtrados.isEmpty
+                ? const Center(child: Text("No hay proveedores"))
+                : ListView.builder(
+                    itemCount: filtrados.length,
+                    itemBuilder: (_, i) {
+                      final p = filtrados[i];
 
-// 🔸 CARD
-class _CardInfo extends StatelessWidget {
-  final String titulo;
-  final String valor;
-
-  const _CardInfo({required this.titulo, required this.valor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              Text(titulo),
-              Text(valor, style: const TextStyle(fontSize: 20)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ItemProveedor extends StatelessWidget {
-  final Proveedores proveedor;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
-
-  const _ItemProveedor({
-    required this.proveedor,
-    required this.onDelete,
-    required this.onEdit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(proveedor.nombre),
-      subtitle: Text(
-        (proveedor.telefono ?? "").isEmpty
-            ? "Sin teléfono"
-            : proveedor.telefono!,
-          ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: onEdit,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: onDelete,
+                      return Card(
+                        child: ListTile(
+                          title: Text(p.nombre),
+                          subtitle: Text(
+                            "RFC: ${p.rfc}\nTel: ${p.telefono}\nDir: ${p.direccion}",
+                          ),
+                          isThreeLine: true,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => abrirFormulario(proveedor: p),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => eliminar(p.idProveedor!),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
