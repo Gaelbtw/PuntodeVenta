@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../core/database/database_helper.dart';
+import '../core/session/session_manager.dart';
+import '../services/ticket_corte_caja_service.dart';
 
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 class CorteCajaView extends StatefulWidget {
   const CorteCajaView({super.key});
 
@@ -9,165 +13,198 @@ class CorteCajaView extends StatefulWidget {
 }
 
 class _CorteCajaViewState extends State<CorteCajaView> {
+
+  // 📊 Datos del sistema
   double total = 0;
   double efectivo = 0;
   double tarjeta = 0;
-  int ventas = 0;
+  double salidasDB = 0;
+
+  // 🧾 Inputs
+  final contadoCtrl = TextEditingController();
+
+  // ⚙️ Configuración
+  final double fondoInicial = 500; // 💰 FIJO
+
+  // 🕐 Datos automáticos
+  late DateTime ahora;
+  late String turno;
+  late String fecha;
+  late String horaApertura;
+  late String horaCierre;
+
+  // 👤 Simulación usuario (cámbialo por tu login real)
+  String cajero = SessionManager.currentUserName;
 
   @override
   void initState() {
     super.initState();
+    inicializar();
+  }
+
+  void inicializar() {
+    ahora = DateTime.now();
+
+    fecha = "${ahora.year}-${_2(ahora.month)}-${_2(ahora.day)}";
+
+    turno = _getTurno(ahora.hour);
+
+    horaApertura = _getHoraApertura(turno);
+    horaCierre = _formatHora(ahora);
+
     calcular();
   }
 
- void calcular() async {
-  final db = await DatabaseHelper().database;
+  String _2(int n) => n.toString().padLeft(2, '0');
 
-  final totalRes =
-      await db.rawQuery("SELECT SUM(total) as total FROM Ventas");
+  String _formatHora(DateTime dt) {
+    int h = dt.hour;
+    int m = dt.minute;
+    String periodo = h >= 12 ? "pm" : "am";
+    h = h % 12 == 0 ? 12 : h % 12;
+    return "${_2(h)}:${_2(m)} $periodo";
+  }
 
-  final efectivoRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'efectivo'");
+  String _getTurno(int hour) {
+    if (hour >= 7 && hour < 14) return "Matutino";
+    if (hour >= 14 && hour < 21) return "Vespertino";
+    return "Fuera de turno";
+  }
 
-  final tarjetaRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'tarjeta'");
+  String _getHoraApertura(String turno) {
+    if (turno == "Matutino") return "07:00 am";
+    if (turno == "Vespertino") return "02:00 pm";
+    return "--";
+  }
 
-  final ventasRes =
-      await db.rawQuery("SELECT COUNT(*) as count FROM Ventas");
+  // 📊 CONSULTAS
+  void calcular() async {
+    final db = await DatabaseHelper().database;
 
-  setState(() {
-    total = (totalRes.first["total"] as num?)?.toDouble() ?? 0;
-    efectivo = (efectivoRes.first["total"] as num?)?.toDouble() ?? 0;
-    tarjeta = (tarjetaRes.first["total"] as num?)?.toDouble() ?? 0;
-    ventas = (ventasRes.first["count"] as int?) ?? 0;
-  });
-}
+    final totalRes =
+        await db.rawQuery("SELECT SUM(total) as total FROM Ventas");
+
+    final efectivoRes = await db.rawQuery(
+        "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'efectivo'");
+
+    final tarjetaRes = await db.rawQuery(
+        "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'tarjeta'");
+
+    // 💸 SALIDAS DESDE COMPRAS / GASTOS
+    final salidasRes =
+        await db.rawQuery("SELECT SUM(total) as total FROM Compras");
+
+    setState(() {
+      total = (totalRes.first["total"] as num?)?.toDouble() ?? 0;
+      efectivo = (efectivoRes.first["total"] as num?)?.toDouble() ?? 0;
+      tarjeta = (tarjetaRes.first["total"] as num?)?.toDouble() ?? 0;
+      salidasDB = (salidasRes.first["total"] as num?)?.toDouble() ?? 0;
+    });
+  }
+
+  // 🧠 Cálculos
+  double get contado => double.tryParse(contadoCtrl.text) ?? 0;
+
+  double get esperadoEnCaja => efectivo + fondoInicial - salidasDB;
+  double get diferencia => contado - esperadoEnCaja;
+
+  // 🧾 CORTE
+  void generarCorte() async {
+  horaCierre = _formatHora(DateTime.now());
+
+  // 🧾 generar PDF
+  final pdf = await TicketService.generarCorte(
+    fecha: fecha,
+    turno: turno,
+    cajero: SessionManager.currentUserName,
+    horaApertura: horaApertura,
+    horaCierre: horaCierre,
+
+    total: total,
+    efectivo: efectivo,
+    tarjeta: tarjeta,
+
+    fondo: fondoInicial,
+    salidas: salidasDB,
+    contado: contado,
+
+    esperado: esperadoEnCaja,
+    diferencia: diferencia,
+  );
+
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-
       appBar: AppBar(
         title: const Text("Corte de Caja"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: calcular,
-          ),
-        ],
       ),
-
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
 
-            //  TOTAL GRANDE
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    "TOTAL DEL DÍA",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "\$${total.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _box("Fecha", fecha),
+            _box("Turno", turno),
+            _box("Cajero", cajero),
+            _box("Hora apertura", horaApertura),
+            _box("Hora cierre", horaCierre),
+
+            const SizedBox(height: 10),
+
+            _box("Fondo inicial", fondoInicial.toStringAsFixed(2)),
+            _box("Salidas", salidasDB.toStringAsFixed(2)),
+
+            _box("Total efectivo", efectivo.toStringAsFixed(2)),
+            _box("Tarjeta", tarjeta.toStringAsFixed(2)),
+            _box("Total ventas", total.toStringAsFixed(2)),
+
+            const SizedBox(height: 10),
+
+            _input("Efectivo contado", contadoCtrl),
+
+            const SizedBox(height: 10),
+
+            _box("Diferencia", diferencia.toStringAsFixed(2)),
 
             const SizedBox(height: 20),
 
-            //  TARJETAS
-            Row(
-              children: [
-                _card("Efectivo", efectivo, Colors.blue),
-                _card("Tarjeta", tarjeta, Colors.purple),
-                _cardCount("Ventas", ventas, Colors.orange),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            //  BOTÓN
-            ElevatedButton.icon(
-              onPressed: calcular,
-              icon: const Icon(Icons.refresh),
-              label: const Text("Actualizar Corte"),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
-              ),
-            ),
+            ElevatedButton(
+              onPressed: generarCorte,
+              child: const Text("Ejecutar corte"),
+            )
           ],
         ),
       ),
     );
   }
 
-  // 💳 CARD DINERO
-  Widget _card(String title, double value, Color color) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.only(right: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(title),
-            const SizedBox(height: 5),
-            Text(
-              "\$${value.toStringAsFixed(2)}",
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color),
-            ),
-          ],
-        ),
+  Widget _box(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
       ),
+      child: Text("$label: $value"),
     );
   }
 
-  // 🔢 CARD CONTADOR
-  Widget _cardCount(String title, int value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(title),
-            const SizedBox(height: 5),
-            Text(
-              "$value",
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color),
-            ),
-          ],
-        ),
+  Widget _input(String label, TextEditingController ctrl) {
+    return TextField(
+      controller: ctrl,
+      keyboardType: TextInputType.number,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
       ),
     );
   }

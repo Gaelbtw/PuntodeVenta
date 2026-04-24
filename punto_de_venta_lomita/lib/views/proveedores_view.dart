@@ -37,7 +37,7 @@ class _ProveedorViewState extends State<ProveedorView> {
 
     final resultado = proveedores.where((p) {
       return p.nombre.toLowerCase().contains(query.toLowerCase()) ||
-             p.rfc.toLowerCase().contains(query.toLowerCase());
+            p.rfc.toLowerCase().contains(query.toLowerCase());
     }).toList();
 
     setState(() => filtrados = resultado);
@@ -114,9 +114,9 @@ class _ProveedorViewState extends State<ProveedorView> {
               } else {
                 await controller.actualizar(nuevo);
               }
-
-              Navigator.pop(context);
               cargar();
+              Navigator.pop(context);
+              
             },
             child: const Text("Guardar"),
           )

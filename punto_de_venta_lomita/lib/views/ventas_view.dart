@@ -3,17 +3,13 @@ import '../controllers/ventas_controller.dart';
 import '../controllers/producto_controller.dart';
 //import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
-<<<<<<< HEAD
-import '../models/categoria_model.dart';
 import '../widgets/custom_alert.dart';
 import '../models/cliente_model.dart';
 
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import '../services/ticket_service.dart';
-=======
 //import '../models/categoria_model.dart';
->>>>>>> 16db22c12add7cd37ee26f4f704773cb253b61d5
 
 class VentasView extends StatefulWidget {
   final Cliente? cliente;

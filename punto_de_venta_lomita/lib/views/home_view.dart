@@ -13,6 +13,7 @@ import 'proveedores_view.dart';
 import 'reporte_view.dart';
 import 'usuarios_view.dart';
 import 'ventas_view.dart';
+import 'compras_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
