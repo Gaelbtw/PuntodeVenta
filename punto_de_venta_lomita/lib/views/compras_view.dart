@@ -6,6 +6,9 @@ import '../models/producto_model.dart';
 import '../models/proveedores_model.dart';
 import '../widgets/custom_alert.dart';
 
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import '../services/ticket_compras_service.dart';
 class ComprasView extends StatefulWidget {
   const ComprasView({super.key});
 
@@ -34,7 +37,7 @@ class _ComprasViewState extends State<ComprasView> {
   }
 
   void cargarDatos() async {
-    productos = await productoController.obtenerTodos();
+    productos = await productoController.obtenerProductosConPrecioCompra();
     proveedores = await proveedorController.obtenerTodos();
     setState(() {});
   }
@@ -52,7 +55,7 @@ class _ComprasViewState extends State<ComprasView> {
         carrito.add({
           "id_producto": p.idProducto,
           "nombre": p.nombre,
-          "precio": p.precio,
+          "precio_compra": p.precioCompra,
           "cantidad": 1,
         });
       }
@@ -62,7 +65,7 @@ class _ComprasViewState extends State<ComprasView> {
   // 🟢 TOTAL
   double get total => carrito.fold(
     0,
-    (sum, item) => sum + (item['precio'] * item['cantidad']),
+    (sum, item) => sum + (item['precio_compra'] * item['cantidad']),
   );
 
   // 🟢 GUARDAR COMPRA
@@ -76,9 +79,12 @@ class _ComprasViewState extends State<ComprasView> {
         proveedorSeleccionado!.idProveedor!,
       );
 
+    await imprimirTicket();
+      
       setState(() {
         carrito.clear();
       });
+
 
       showDialog(
         context: context,
@@ -109,6 +115,18 @@ class _ComprasViewState extends State<ComprasView> {
         carrito.removeAt(index);
       }
     });
+  }
+
+  Future<void> imprimirTicket() async {
+    final pdf = await TicketService.generarTicket(
+      carrito: carrito, 
+      total: total, 
+      proveedor: proveedorSeleccionado!.nombre
+    );
+
+    await Printing.layoutPdf (
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -182,7 +200,7 @@ class _ComprasViewState extends State<ComprasView> {
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold)),
                                 const Spacer(),
-                                Text("\$${p.precio}"),
+                                Text("\$${p.precioCompra}"),
                                 const SizedBox(height: 8),
                                 ElevatedButton(
                                   onPressed: () => agregarProducto(p),
@@ -239,7 +257,7 @@ class _ComprasViewState extends State<ComprasView> {
 
                           return ListTile(
                             title: Text(item['nombre']),
-                            subtitle: Text("\$${item['precio']}"),
+                            subtitle: Text("\$${item['precio_compra']}"),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

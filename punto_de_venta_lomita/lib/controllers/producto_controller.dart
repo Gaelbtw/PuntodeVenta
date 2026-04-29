@@ -60,4 +60,14 @@ class ProductoService {
   return result;
 }
 
+Future<List<Producto>> obtenerProductosConPrecioCompra() async {
+    final db = await DatabaseHelper().database;
+    final result = await db.query(
+      'Producto',
+      where: 'precio_compra > 1'
+      );
+
+    return result.map((e) => Producto.fromMap(e)).toList();
+  }
+
 }

@@ -3,12 +3,14 @@ class Producto {
   final String nombre;
   final String descripcion;
   final double precio;
-
+  final double? precioCompra;
+  
   const Producto({
     this.idProducto,
     required this.nombre,
     required this.descripcion,
     required this.precio,
+    this.precioCompra
   });
 
   // Convertir objeto a Map (para SQLite)
@@ -18,6 +20,7 @@ class Producto {
       "nombre": nombre,
       "descripcion": descripcion,
       "precio": precio,
+      "precio_compra": precioCompra
     };
   }
 
@@ -28,6 +31,7 @@ class Producto {
       nombre: map["nombre"],
       descripcion: map["descripcion"],
       precio: map["precio"],
+      precioCompra: map["precio_compra"]
     );
   }
 }

@@ -149,6 +149,7 @@ class DatabaseHelper {
         nombre TEXT NOT NULL,
         descripcion TEXT,
         precio REAL NOT NULL,
+        precio_compra REAL,
         id_categoria INTEGER,
         FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria)
       );
@@ -185,6 +186,11 @@ class DatabaseHelper {
         rol
       ) VALUES ("Admin", "1234", "Admin");
     ''');
+
+    await db.execute('''
+  INSERT INTO Producto (nombre, descripcion, precio, precio_compra, id_categoria)
+  VALUES ('Producto sin categoría', 'Ejemplo de producto', 100.0, 60.0, NULL)
+''');
 
     await _insertarAuditoriasDemo(db);
   }
