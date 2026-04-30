@@ -25,6 +25,7 @@ class _ComprasViewState extends State<ComprasView> {
   List<Producto> productos = [];
   List<Proveedores> proveedores = [];
   List<Map<String, dynamic>> carrito = [];
+  Map<int, TextEditingController> controllers = {};
 
   Proveedores? proveedorSeleccionado;
 
@@ -254,6 +255,16 @@ class _ComprasViewState extends State<ComprasView> {
                         itemCount: carrito.length,
                         itemBuilder: (_, i) {
                           final item = carrito[i];
+                          
+                          final id = item['id_producto'];
+
+                              if (!controllers.containsKey(id)) {
+                                controllers[id] = TextEditingController(
+                                  text: item['cantidad'].toString(),
+                                );
+                              } else {
+                                controllers[id]!.text = item['cantidad'].toString();
+                              }
 
                           return ListTile(
                             title: Text(item['nombre']),
@@ -266,7 +277,30 @@ class _ComprasViewState extends State<ComprasView> {
                                       cambiarCantidad(i, -1),
                                   icon: const Icon(Icons.remove),
                                 ),
-                                Text(item['cantidad'].toString()),
+
+                              
+SizedBox(
+          width: 50,
+          child: TextField(
+            controller: controllers[id],
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              final nuevaCantidad = int.tryParse(value);
+
+              if (nuevaCantidad != null && nuevaCantidad > 0) {
+                setState(() {
+      item['cantidad'] = nuevaCantidad;
+    });
+              }
+            },
+          ),
+        ),
                                 IconButton(
                                   onPressed: () =>
                                       cambiarCantidad(i, 1),
@@ -327,4 +361,12 @@ class _ComprasViewState extends State<ComprasView> {
       ),
     );
   }
+
+  @override
+void dispose() {
+  for (var c in controllers.values) {
+    c.dispose();
+  }
+  super.dispose();
+}
 }
