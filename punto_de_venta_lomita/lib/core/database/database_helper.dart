@@ -199,11 +199,22 @@ class DatabaseHelper {
     if (oldVersion < 5) {
       await _ensureAuditoriasTable(db);
       await _insertarAuditoriasDemo(db);
+      await _ensureVentasMetodoPagoColumn(db);
     }
   }
 
   Future<void> _onOpen(Database db) async {
     await _ensureAuditoriasTable(db);
+    await _ensureVentasMetodoPagoColumn(db);
+  }
+
+  Future<void> _ensureVentasMetodoPagoColumn(Database db) async {
+    final info = await db.rawQuery('PRAGMA table_info(Ventas)');
+    final columnNames = info.map((row) => row['name']?.toString()).toList();
+
+    if (!columnNames.contains('metodo_pago')) {
+      await db.execute('ALTER TABLE Ventas ADD COLUMN metodo_pago TEXT DEFAULT "efectivo";');
+    }
   }
 
   Future<void> _ensureAuditoriasTable(Database db) async {
