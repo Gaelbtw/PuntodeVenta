@@ -66,7 +66,7 @@ class _ComprasViewState extends State<ComprasView> {
   // 🟢 TOTAL
   double get total => carrito.fold(
     0,
-    (sum, item) => sum + (item['precio_compra'] * item['cantidad']),
+    (sum, item) => sum + ((item['precio_compra'] ?? 0) * item['cantidad']),
   );
 
   // 🟢 GUARDAR COMPRA
@@ -79,6 +79,13 @@ class _ComprasViewState extends State<ComprasView> {
         total,
         proveedorSeleccionado!.idProveedor!,
       );
+
+    for (var item in carrito) {
+      await productoController.agregarStock(
+        item['id_producto'],
+        item['cantidad'],
+      );
+    }
 
     await imprimirTicket();
       
@@ -201,7 +208,7 @@ class _ComprasViewState extends State<ComprasView> {
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold)),
                                 const Spacer(),
-                                Text("\$${p.precioCompra}"),
+                                Text("\$${p.precioCompra ?? 0}"),
                                 const SizedBox(height: 8),
                                 ElevatedButton(
                                   onPressed: () => agregarProducto(p),

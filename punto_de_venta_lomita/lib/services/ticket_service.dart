@@ -55,7 +55,7 @@ class TicketService {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
 
               pw.Divider(),
 

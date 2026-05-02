@@ -229,7 +229,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
                       )
                     : ListView.separated(
                         itemCount: auditoriasFiltradas.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (_, _) => const Divider(height: 1),
                         itemBuilder: (_, index) {
                           final auditoria = auditoriasFiltradas[index];
                           return _filaAuditoria(auditoria);

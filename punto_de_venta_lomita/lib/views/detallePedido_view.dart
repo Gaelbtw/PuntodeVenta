@@ -33,7 +33,7 @@ class DetallePedidoView extends StatelessWidget {
             const SizedBox(height: 20),
 
             DropdownButtonFormField<String>(
-              value: pedido.estado,
+              initialValue: pedido.estado,
               items: ["pendiente", "entregado", "espera"]
                   .map((e) => DropdownMenuItem(
                         value: e,

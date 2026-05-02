@@ -340,7 +340,7 @@ class _BaseDatosViewState extends State<BaseDatosView> {
 
     return ListView.separated(
       itemCount: backups.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (_, index) {
         final backup = backups[index];
         return Container(

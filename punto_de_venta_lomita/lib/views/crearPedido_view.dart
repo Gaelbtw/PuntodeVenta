@@ -68,7 +68,7 @@ class _CrearPedidoViewState extends State<CrearPedidoView> {
             const SizedBox(height: 10),
 
             DropdownButtonFormField<String>(
-              value: tipo,
+              initialValue: tipo,
               items: ["local", "domicilio"]
                   .map((e) => DropdownMenuItem(
                         value: e,
@@ -82,7 +82,7 @@ class _CrearPedidoViewState extends State<CrearPedidoView> {
             const SizedBox(height: 10),
 
             DropdownButtonFormField<String>(
-              value: metodoPago,
+              initialValue: metodoPago,
               items: ["efectivo", "tarjeta"]
                   .map((e) => DropdownMenuItem(
                         value: e,

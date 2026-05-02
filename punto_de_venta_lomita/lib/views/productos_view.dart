@@ -47,53 +47,84 @@ class _ProductosViewState extends State<ProductosView> {
   }
 
   void mostrarFormulario({Producto? producto}) {
-    if (producto != null) {
-      nombreCtrl.text = producto.nombre;
-      descCtrl.text = producto.descripcion;
-      precioCtrl.text = producto.precio.toString();
-    }
+  final categoriaCtrl = TextEditingController();
+  final stockCtrl = TextEditingController();
+  String estado = "Activo";
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(producto == null ? "Nuevo Producto" : "Editar Producto"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+  if (producto != null) {
+    nombreCtrl.text = producto.nombre;
+    descCtrl.text = producto.descripcion;
+    precioCtrl.text = producto.precio.toString();
+    categoriaCtrl.text = producto.categoria;
+    estado = producto.estado;
+  }
+
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text(producto == null ? "Nuevo Producto" : "Editar Producto"),
+      content: SingleChildScrollView(
+        child: Column(
           children: [
             TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
             TextField(controller: descCtrl, decoration: const InputDecoration(labelText: "Descripción")),
-            TextField(controller: precioCtrl, decoration: const InputDecoration(labelText: "Precio")),
+            TextField(controller: precioCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Precio")),
+            TextField(controller: categoriaCtrl, decoration: const InputDecoration(labelText: "Categoría")),
+            TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Stock inicial")),
+
+            DropdownButton<String>(
+              value: estado,
+              items: ["Activo", "Inactivo"]
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) {
+                estado = v!;
+              },
+            )
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(
-            onPressed: () async {
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
+        ElevatedButton(
+          onPressed: () async {
+            try {
+              double precio = double.parse(precioCtrl.text);
+              int stock = int.parse(stockCtrl.text);
+
               final nuevo = Producto(
                 idProducto: producto?.idProducto,
                 nombre: nombreCtrl.text,
                 descripcion: descCtrl.text,
-                precio: double.tryParse(precioCtrl.text) ?? 0,
+                precio: precio,
+                categoria: categoriaCtrl.text,
+                estado: estado,
               );
 
               if (producto == null) {
-                await controller.insertar(nuevo);
+                await controller.insertar(nuevo, stock);
               } else {
                 await controller.actualizar(nuevo);
               }
 
               Navigator.pop(context);
-              nombreCtrl.clear();
-              descCtrl.clear();
-              precioCtrl.clear();
               cargar();
-            },
-            child: const Text("Guardar"),
-          ),
-        ],
-      ),
-    );
-  }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Producto guardado")),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(e.toString())),
+              );
+            }
+          },
+          child: const Text("Guardar"),
+        ),
+      ],
+    ),
+  );
+}
 
   void eliminar(int id) async {
     await controller.eliminar(id);

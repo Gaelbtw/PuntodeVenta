@@ -150,6 +150,9 @@ class DatabaseHelper {
         descripcion TEXT,
         precio REAL NOT NULL,
         precio_compra REAL,
+        categoria TEXT,
+        stock_minimo INTEGER DEFAULT 0,
+        estado TEXT CHECK(estado IN ('Activo','Inactivo')) DEFAULT 'Activo',  
         id_categoria INTEGER,
         FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria)
       );

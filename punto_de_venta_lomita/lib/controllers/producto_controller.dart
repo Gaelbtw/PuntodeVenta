@@ -3,17 +3,32 @@ import '../models/producto_model.dart';
 
 class ProductoService {
 
-  Future<int> insertar(Producto producto) async {
+  Future<int> insertar(Producto producto, int stockInicial) async {
   final db = await DatabaseHelper().database;
+
+  if (producto.precio <= 0) {
+    throw Exception("Precio inválido");
+  }
+
+  if (stockInicial < 0) {
+    throw Exception("Stock inválido");
+  }
 
   int id = await db.insert('Producto', producto.toMap());
 
   await db.insert('Inventario', {
     "id_producto": id,
-    "cantidad": 0,
+    "cantidad": stockInicial,
   });
 
   return id;
+}
+
+Future<List<Producto>> obtenerProductosConPrecioCompra() async {
+    final db = await DatabaseHelper().database;
+    final result = await db.query('Producto');
+
+    return result.map((e) => Producto.fromMap(e)).toList();
 }
 
   Future<List<Producto>> obtenerTodos() async {
@@ -34,6 +49,8 @@ class ProductoService {
     );
   }
 
+  
+
   Future<int> eliminar(int id) async {
     final db = await DatabaseHelper().database;
 
@@ -47,27 +64,66 @@ class ProductoService {
   Future<List<Map<String, dynamic>>> obtenerConStock() async {
     final db = await DatabaseHelper().database;
 
-    final result = await db.rawQuery('''
+    return await db.rawQuery('''
       SELECT 
-        Producto.id_producto,
-        Producto.nombre,
-        Producto.precio,
-        IFNULL(Inventario.cantidad, 0) as cantidad
-      FROM Producto
-      LEFT JOIN Inventario 
-      ON Producto.id_producto = Inventario.id_producto
+        p.id_producto,
+        p.nombre,
+        p.precio,
+        p.categoria,
+        p.estado,
+        p.stock_minimo,
+        IFNULL(i.cantidad, 0) as cantidad
+      FROM Producto p
+      LEFT JOIN Inventario i 
+      ON p.id_producto = i.id_producto
     ''');
-  return result;
-}
-
-Future<List<Producto>> obtenerProductosConPrecioCompra() async {
-    final db = await DatabaseHelper().database;
-    final result = await db.query(
-      'Producto',
-      where: 'precio_compra > 1'
-      );
-
-    return result.map((e) => Producto.fromMap(e)).toList();
   }
 
+  Future<void> agregarStock(int idProducto, int cantidadNueva) async {
+    final db = await DatabaseHelper().database;
+
+    if (cantidadNueva <= 0) {
+      throw Exception("Cantidad inválida");
+    }
+
+    final result = await db.query(
+      "Inventario",
+      where: "id_producto = ?",
+      whereArgs: [idProducto],
+    );
+
+    int actual = result.first["cantidad"] as int;
+    int nuevo = actual + cantidadNueva;
+
+    await db.update(
+      "Inventario",
+      {"cantidad": nuevo},
+      where: "id_producto = ?",
+      whereArgs: [idProducto],
+    );
+  }
+
+  Future<void> restarStock(int idProducto, int cantidad) async {
+    final db = await DatabaseHelper().database;
+
+    final result = await db.query(
+      "Inventario",
+      where: "id_producto = ?",
+      whereArgs: [idProducto],
+    );
+
+    int actual = result.first["cantidad"] as int;
+
+    if (cantidad > actual) {
+      throw Exception("Stock insuficiente");
+    }
+
+    await db.update(
+      "Inventario",
+      {"cantidad": actual - cantidad},
+      where: "id_producto = ?",
+      whereArgs: [idProducto],
+    );
+  }
 }
+

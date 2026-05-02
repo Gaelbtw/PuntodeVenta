@@ -173,7 +173,7 @@ class _ReporteViewState extends State<ReporteView> {
                   return Text(
                     '${item['cantidad']} x ${item['nombre']} - \$${(item['precio'] as num).toStringAsFixed(2)}',
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 12),
                 Text('Total: \$${total.toStringAsFixed(2)}'),
               ],
@@ -281,7 +281,7 @@ class _ReporteViewState extends State<ReporteView> {
                   else
                     Expanded(
                       child: ListView.separated(
-                        separatorBuilder: (_, __) => const Divider(),
+                        separatorBuilder: (_, _) => const Divider(),
                         itemCount: productosVendidos.length,
                         itemBuilder: (_, index) {
                           final item = productosVendidos[index];
@@ -299,7 +299,7 @@ class _ReporteViewState extends State<ReporteView> {
                     child: ventasRecientes.isEmpty
                         ? const Center(child: Text('No hay ventas recientes para este rango.'))
                         : ListView.separated(
-                            separatorBuilder: (_, __) => const Divider(),
+                            separatorBuilder: (_, _) => const Divider(),
                             itemCount: ventasRecientes.length,
                             itemBuilder: (_, index) {
                               final venta = ventasRecientes[index];

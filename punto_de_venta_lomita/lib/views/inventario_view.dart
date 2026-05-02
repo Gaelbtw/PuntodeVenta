@@ -135,16 +135,17 @@ class _InventarioViewState extends State<InventarioView> {
                   nombre: nombreCtrl.text,
                   descripcion: "",
                   precio: double.parse(precioCtrl.text),
+                  categoria: p['categoria'] ?? "",
+                  estado: p['estado'] ?? "Activo",
+                  stockMinimo: p['stock_minimo'] ?? 5,
                 ),
-              );
+            );
 
-              // actualizar inventario
-              final db = await DatabaseHelper().database;
-              await db.update(
-                'Inventario',
-                {'cantidad': int.parse(stockCtrl.text)},
-                where: 'id_producto = ?',
-                whereArgs: [p['id_producto']],
+              int cantidadNueva = int.parse(stockCtrl.text);
+
+              await productoController.agregarStock(
+                p['id_producto'],
+                cantidadNueva,
               );
 
               Navigator.pop(context);
@@ -279,11 +280,17 @@ class _InventarioViewState extends State<InventarioView> {
 
   Widget _filaProducto(Map<String, dynamic> p) {
     final stock = p['cantidad'];
+    
 
     String estado = "OK";
     Color color = Colors.green;
 
-    if (stock <= 5 && stock > 0) {
+    int minimo = p['stock_minimo'] ?? 5;
+    if (stock <= minimo && stock > 0) {
+      estado = "Stock Bajo";
+      color = Colors.orange; 
+    } 
+    {
       estado = "Stock Bajo";
       color = Colors.orange;
     }
@@ -298,22 +305,52 @@ class _InventarioViewState extends State<InventarioView> {
       child: Row(
         children: [
           Expanded(child: Text(p['nombre'])),
-          Expanded(child: Text("${p['id_categoria']}")),
+          Expanded(child: Text("${p['id_categoria'] ?? 'Sin categoría'}")),
           Expanded(child: Text("\$${p['precio']}")),
           Expanded(child: Text("$stock")),
-          Expanded(
-            child: Text(estado, style: TextStyle(color: color)),
+          Expanded(child: Text(estado, style: TextStyle(color: color)),
           ),
           Expanded(
             child: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () => mostrarEditarProducto(p),
+                SizedBox(
+                  width: 60,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: "Cant",
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (value) async {
+                      final cantidad = int.tryParse(value) ?? 0;
+
+                      if (cantidad <= 0) return;
+
+                      await productoController.agregarStock(
+                        p['id_producto'],
+                        cantidad,
+                      );
+
+                      cargarTodo();
+                    },
+                  ),
                 ),
+
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => confirmarEliminar(p),
+                  icon: const Icon(Icons.remove, color: Colors.red),
+                  onPressed: () async {
+                    try {
+                      await productoController.restarStock(
+                        p['id_producto'],
+                        1,
+                      );
+                      cargarTodo();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Stock insuficiente")),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
