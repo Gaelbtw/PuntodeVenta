@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/database/database_helper.dart';
 import '../core/session/session_manager.dart';
+import '../widgets/nav_bar.dart';
 import '../services/ticket_corte_caja_service.dart';
 
 import 'package:printing/printing.dart';
@@ -141,8 +142,9 @@ class _CorteCajaViewState extends State<CorteCajaView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-      appBar: AppBar(
-        title: const Text("Corte de Caja"),
+      appBar: CustomHeader(
+        titulo: "Corte de Caja",
+        mostrarVolver: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:punto_de_venta_lomita/views/ventas_view.dart';
 import '../controllers/cliente_controller.dart';
 import '../models/cliente_model.dart';
+import '../widgets/nav_bar.dart';
 
 class ClientesView extends StatefulWidget {
   const ClientesView({super.key});
@@ -95,7 +96,10 @@ class _ClientesViewState extends State<ClientesView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      appBar: AppBar(title: const Text("Clientes")),
+      appBar: CustomHeader(
+        titulo: "Clientes",
+        mostrarVolver: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

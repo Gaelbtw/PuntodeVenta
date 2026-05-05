@@ -3,6 +3,7 @@ import 'ventas_view.dart';
 import 'clientes_view.dart';
 import 'compras_view.dart';
 import 'proveedores_view.dart';
+import '../widgets/nav_bar.dart';
 
 class CajeroView extends StatefulWidget {
   const CajeroView({super.key});
@@ -32,8 +33,9 @@ class _CajeroViewState extends State<CajeroView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(titulos[index]),
+      appBar: CustomHeader(
+        titulo: titulos[index],
+        mostrarVolver: true,
       ),
       body: pantallas[index],
 

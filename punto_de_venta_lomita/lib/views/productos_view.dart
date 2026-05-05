@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/producto_controller.dart';
 import '../models/producto_model.dart';
+import '../widgets/nav_bar.dart';
 
 class ProductosView extends StatefulWidget {
   const ProductosView({super.key});
@@ -134,22 +135,29 @@ class _ProductosViewState extends State<ProductosView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Productos")),
+      appBar: CustomHeader(
+        titulo: "Productos",
+        mostrarVolver: true,
+      ),
       body: Column(
         children: [
 
           // 🔍 BUSCADOR
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              decoration: const InputDecoration(
+          TextField(
+              onChanged: (v) => setState(() => busqueda = v),
+              decoration: InputDecoration(
                 hintText: "Buscar producto...",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
-              onChanged: buscar,
             ),
-          ),
+
+            const SizedBox(height: 20),
 
           // ➕ BOTÓN
           ElevatedButton(

@@ -5,6 +5,7 @@ import '../controllers/compras_controller.dart';
 import '../models/producto_model.dart';
 import '../models/proveedores_model.dart';
 import '../widgets/custom_alert.dart';
+import '../widgets/nav_bar.dart';
 
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -141,8 +142,9 @@ class _ComprasViewState extends State<ComprasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-      appBar: AppBar(
-        title: const Text("Compras"),
+      appBar: CustomHeader(
+        titulo: "Compras",
+        mostrarVolver: true,
       ),
 
       body: Padding(

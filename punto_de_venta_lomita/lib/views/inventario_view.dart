@@ -4,6 +4,7 @@ import '../controllers/producto_controller.dart';
 import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
 import '../models/categoria_model.dart';
+import '../widgets/nav_bar.dart';
 
 class InventarioView extends StatefulWidget {
   const InventarioView({super.key});
@@ -167,8 +168,9 @@ class _InventarioViewState extends State<InventarioView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
 
-      appBar: AppBar(
-        title: const Text("Inventario"),
+      appBar: CustomHeader(
+        titulo: "Inventario",
+        mostrarVolver: true,
       ),
 
       body: Padding(

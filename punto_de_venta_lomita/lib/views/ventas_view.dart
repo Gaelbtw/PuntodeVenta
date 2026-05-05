@@ -5,6 +5,7 @@ import '../controllers/producto_controller.dart';
 import '../models/producto_model.dart';
 import '../widgets/custom_alert.dart';
 import '../models/cliente_model.dart';
+import '../widgets/nav_bar.dart';
 
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -183,12 +184,12 @@ class _VentasViewState extends State<VentasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
-      appBar: AppBar(
-        
-        title: Text(
-          clienteSeleccionado != null
-        ? "Venta - ${clienteSeleccionado!.nombre}" :
-          "Punto de Venta")),
+      appBar: CustomHeader(
+        titulo: clienteSeleccionado != null
+            ? "Venta - ${clienteSeleccionado!.nombre}"
+            : "Punto de Venta",
+        mostrarVolver: true,
+      ),
 
       body: Padding(
         padding: const EdgeInsets.all(16),

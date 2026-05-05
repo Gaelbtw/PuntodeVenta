@@ -14,6 +14,7 @@ import 'reporte_view.dart';
 import 'usuarios_view.dart';
 import 'ventas_view.dart';
 import 'compras_view.dart';
+import '../widgets/nav_bar.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -21,30 +22,23 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("La Lomita"),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Text(
-                SessionManager.currentUserName,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              SessionManager.clear();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginView()),
-                (route) => false,
-              );
-            },
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFFFAF8F4),
+    appBar: CustomHeader(
+  titulo: "Menu",
+  mostrarVolver: false,
+  extraActions: [
+    IconButton(
+      icon: const Icon(Icons.logout, color: Colors.black87),
+      onPressed: () {
+        SessionManager.clear();
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginView()),
+          (route) => false,
+        );
+      },
+    ),
+  ],
+),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.count(

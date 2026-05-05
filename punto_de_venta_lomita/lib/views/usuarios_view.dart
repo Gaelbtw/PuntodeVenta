@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/usuarios_controller.dart';
 import '../models/usuarios_model.dart';
+import '../widgets/nav_bar.dart';
 
 class UsuariosView extends StatefulWidget {
   const UsuariosView({super.key});
@@ -226,15 +227,12 @@ class _UsuariosViewState extends State<UsuariosView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
 
-      appBar: AppBar(
-        title: const Text("Usuarios"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: mostrarAgregarUsuario,
-          ),
-        ],
+      appBar: CustomHeader(
+        titulo: "Usuarios",
+        mostrarVolver: true,
       ),
+
+      
 
       body: Padding(
         padding: const EdgeInsets.all(16),

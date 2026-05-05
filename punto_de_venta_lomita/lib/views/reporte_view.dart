@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../core/database/database_helper.dart';
 import '../services/ticket_service.dart';
+import '../widgets/nav_bar.dart';
 
 class ReporteView extends StatefulWidget {
 
@@ -234,7 +235,11 @@ class _ReporteViewState extends State<ReporteView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reportes')),
+      appBar: CustomHeader(
+        titulo: "Reporte de Ventas",
+  
+        mostrarVolver: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: cargando
