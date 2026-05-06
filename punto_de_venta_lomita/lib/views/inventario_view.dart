@@ -6,6 +6,10 @@ import '../models/producto_model.dart';
 import '../models/categoria_model.dart';
 import '../widgets/nav_bar.dart';
 
+// 🔥 NUEVO
+import '../services/configuracion_service.dart';
+import '../models/configuracion_model.dart';
+
 class InventarioView extends StatefulWidget {
   const InventarioView({super.key});
 
@@ -17,6 +21,10 @@ class _InventarioViewState extends State<InventarioView> {
   final productoController = ProductoService();
   final categoriaController = CategoriaController();
 
+  // 🔥 CONFIG
+  late Configuracion config;
+  bool cargando = true;
+
   List<Map<String, dynamic>> productos = [];
   List<Categoria> categorias = [];
 
@@ -26,17 +34,29 @@ class _InventarioViewState extends State<InventarioView> {
   @override
   void initState() {
     super.initState();
-    cargarTodo();
+    inicializar();
   }
 
-  void cargarTodo() async {
+  // 🔥 INIT CORRECTO
+  Future<void> inicializar() async {
+    config = await ConfiguracionService().obtener();
+
+    await cargarTodo();
+
+    if (!mounted) return;
+
+    setState(() {
+      cargando = false;
+    });
+  }
+
+  // 🔥 FIX VOID -> FUTURE
+  Future<void> cargarTodo() async {
     final prod = await productoController.obtenerConStock();
     final cat = await categoriaController.obtenerTodos();
 
-    setState(() {
-      productos = prod;
-      categorias = cat;
-    });
+    productos = prod;
+    categorias = cat;
   }
 
   // 🔍 FILTRO
@@ -66,11 +86,9 @@ class _InventarioViewState extends State<InventarioView> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await productoController
-                  .eliminar(p['id_producto']);
-
+              await productoController.eliminar(p['id_producto']);
               Navigator.pop(context);
-              cargarTodo();
+              await inicializar();
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Producto eliminado")),
@@ -83,7 +101,7 @@ class _InventarioViewState extends State<InventarioView> {
     );
   }
 
-  //  EDITAR
+  // ✏ EDITAR
   void mostrarEditarProducto(Map<String, dynamic> p) {
     final nombreCtrl = TextEditingController(text: p['nombre']);
     final precioCtrl =
@@ -129,7 +147,6 @@ class _InventarioViewState extends State<InventarioView> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // actualizar producto
               await productoController.actualizar(
                 Producto(
                   idProducto: p['id_producto'],
@@ -138,19 +155,17 @@ class _InventarioViewState extends State<InventarioView> {
                   precio: double.parse(precioCtrl.text),
                   categoriaId: p['id_categoria'],
                   estado: p['estado'] ?? "Activo",
-                  stockMinimo: p['stock_minimo'] ?? 5,
+                  stockMinimo: config.stockMinimo, // 🔥 GLOBAL
                 ),
-            );
-
-              int cantidadNueva = int.parse(stockCtrl.text);
+              );
 
               await productoController.agregarStock(
                 p['id_producto'],
-                cantidadNueva,
+                int.parse(stockCtrl.text),
               );
 
               Navigator.pop(context);
-              cargarTodo();
+              await inicializar();
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Producto actualizado")),
@@ -173,93 +188,94 @@ class _InventarioViewState extends State<InventarioView> {
         mostrarVolver: true,
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
 
-            // 🔍 BUSCADOR + CATEGORÍAS
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    onChanged: (v) => setState(() => busqueda = v),
-                    decoration: InputDecoration(
-                      hintText: "Buscar producto...",
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
+                  // 🔍 BUSCADOR + CATEGORÍAS
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          onChanged: (v) => setState(() => busqueda = v),
+                          decoration: InputDecoration(
+                            hintText: "Buscar producto...",
+                            prefixIcon: const Icon(Icons.search),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              ChoiceChip(
+                                label: const Text("Todos"),
+                                selected: categoriaSeleccionada == null,
+                                onSelected: (_) {
+                                  setState(() => categoriaSeleccionada = null);
+                                },
+                              ),
+                              ...categorias.map((cat) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: ChoiceChip(
+                                    label: Text(cat.nombre),
+                                    selected:
+                                        categoriaSeleccionada == cat.idCategoria,
+                                    onSelected: (_) {
+                                      setState(() {
+                                        categoriaSeleccionada =
+                                            cat.idCategoria;
+                                      });
+                                    },
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 🧾 TABLA
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      ),
+                      child: ListView(
+                        children: [
+                          _headerTabla(),
+                          ...filtrados.map((p) => _filaProducto(p)),
+                        ],
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 10),
+                  const SizedBox(height: 20),
 
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        ChoiceChip(
-                          label: const Text("Todos"),
-                          selected: categoriaSeleccionada == null,
-                          onSelected: (_) {
-                            setState(() => categoriaSeleccionada = null);
-                          },
-                        ),
-                        ...categorias.map((cat) {
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: ChoiceChip(
-                              label: Text(cat.nombre),
-                              selected:
-                                  categoriaSeleccionada == cat.idCategoria,
-                              onSelected: (_) {
-                                setState(() {
-                                  categoriaSeleccionada =
-                                      cat.idCategoria;
-                                });
-                              },
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // 🧾 TABLA
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListView(
-                  children: [
-                    _headerTabla(),
-                    ...filtrados.map((p) => _filaProducto(p)),
-                  ],
-                ),
+                  _resumen()
+                ],
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // 📊 RESUMEN
-            _resumen()
-          ],
-        ),
-      ),
     );
   }
 
@@ -282,12 +298,10 @@ class _InventarioViewState extends State<InventarioView> {
 
   Widget _filaProducto(Map<String, dynamic> p) {
     final stock = p['cantidad'];
-    
+    final minimo = config.stockMinimo; // 🔥 USO REAL
 
-    String estado = "OK";
-    Color color = Colors.green;
-
-    int minimo = p['stock_minimo'] ?? 5;
+    String estado;
+    Color color;
 
     if (stock == 0) {
       estado = "Agotado";
@@ -296,7 +310,7 @@ class _InventarioViewState extends State<InventarioView> {
       estado = "Stock Bajo";
       color = Colors.orange;
     } else {
-      estado = "Bien";
+      estado = "OK";
       color = Colors.green;
     }
 
@@ -308,8 +322,7 @@ class _InventarioViewState extends State<InventarioView> {
           Expanded(child: Text("${p['categoria_nombre'] ?? 'Sin categoría'}")),
           Expanded(child: Text("\$${p['precio']}")),
           Expanded(child: Text("$stock")),
-          Expanded(child: Text(estado, style: TextStyle(color: color)),
-          ),
+          Expanded(child: Text(estado, style: TextStyle(color: color))),
           Expanded(
             child: Row(
               children: [
@@ -323,7 +336,6 @@ class _InventarioViewState extends State<InventarioView> {
                     ),
                     onSubmitted: (value) async {
                       final cantidad = int.tryParse(value) ?? 0;
-
                       if (cantidad <= 0) return;
 
                       await productoController.agregarStock(
@@ -331,11 +343,10 @@ class _InventarioViewState extends State<InventarioView> {
                         cantidad,
                       );
 
-                      cargarTodo();
+                      await inicializar();
                     },
                   ),
                 ),
-
                 IconButton(
                   icon: const Icon(Icons.remove, color: Colors.red),
                   onPressed: () async {
@@ -344,7 +355,7 @@ class _InventarioViewState extends State<InventarioView> {
                         p['id_producto'],
                         1,
                       );
-                      cargarTodo();
+                      await inicializar();
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Stock insuficiente")),
@@ -368,7 +379,7 @@ class _InventarioViewState extends State<InventarioView> {
 
       if (stock == 0) {
         agotados++;
-      } else if (stock <= 5) {
+      } else if (stock <= config.stockMinimo) {
         bajos++;
       } else {
         ok++;
