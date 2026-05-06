@@ -178,6 +178,20 @@ class DatabaseHelper {
       );
     ''');
 
+    await db.execute('''
+      CREATE TABLE configuracion (
+        id INT PRIMARY KEY,
+        hora_inicio_matutino VARCHAR(10),
+        hora_fin_matutino VARCHAR(10),
+        hora_inicio_vespertino VARCHAR(10),
+        hora_fin_vespertino VARCHAR(10),
+        fondo_caja REAL,
+        stock_minimo INT
+      );
+    ''');
+
+
+
     await _ensureAuditoriasTable(db);
 
     // Insertar un usuario para probar 

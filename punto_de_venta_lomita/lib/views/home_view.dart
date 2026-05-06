@@ -14,6 +14,7 @@ import 'reporte_view.dart';
 import 'usuarios_view.dart';
 import 'ventas_view.dart';
 import 'compras_view.dart';
+import 'configuracion_view.dart';
 import '../widgets/nav_bar.dart';
 
 class HomeView extends StatelessWidget {
@@ -154,7 +155,18 @@ class HomeView extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => ComprasView()));
               },
             ),
-            
+            MenuCard(
+              title: "Configuración",
+              subtitle: "Preferencias del sistema",
+              icon: Icons.settings,
+              color: const Color(0xFFEED5C4),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ConfiguracionView()),
+                );
+              },
+            ),
             MenuCard(
               title: "Pedidos",
               subtitle: "Gestion de pedidos",
