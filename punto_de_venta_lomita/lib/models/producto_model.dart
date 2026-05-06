@@ -3,33 +3,37 @@ class Producto {
   final String nombre;
   final String descripcion;
   final double precio;
-  final String categoria;
   final int stockMinimo;
   final String estado;
   final double? precioCompra;
+  final int? categoriaId;
 
   const Producto({
     this.idProducto,
     required this.nombre,
     required this.descripcion,
     required this.precio,
-    required this.categoria,
     this.stockMinimo = 5,
     this.estado = "Activo",
     this.precioCompra,
+    this.categoriaId,
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      "id_producto": idProducto,
-      "nombre": nombre,
-      "descripcion": descripcion,
-      "precio": precio,
-      "categoria": categoria,
-      "stock_minimo": stockMinimo,
-      "estado": estado,
-      "precio_compra": precioCompra,
+    final map = <String, dynamic>{
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'precio': precio,
+      'id_categoria': categoriaId,
+      'estado': estado,
+      'stock_minimo': stockMinimo,
     };
+
+    if (idProducto != null) {
+      map['id_producto'] = idProducto;
+    }
+
+    return map;
   }
 
   factory Producto.fromMap(Map<String, dynamic> map) {
@@ -38,10 +42,11 @@ class Producto {
       nombre: map["nombre"],
       descripcion: map["descripcion"] ?? "",
       precio: map["precio"],
-      categoria: map["categoria"] ?? "",
+      //categoria: map["categoria"] ?? "",
       stockMinimo: map["stock_minimo"] ?? 5,
       estado: map["estado"] ?? "Activo",
       precioCompra: map["precio_compra"],
+      categoriaId: map["categoria_id"],
     );
   }
 }

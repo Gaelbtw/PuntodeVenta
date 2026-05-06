@@ -136,7 +136,7 @@ class _InventarioViewState extends State<InventarioView> {
                   nombre: nombreCtrl.text,
                   descripcion: "",
                   precio: double.parse(precioCtrl.text),
-                  categoria: p['categoria'] ?? "",
+                  categoriaId: p['id_categoria'],
                   estado: p['estado'] ?? "Activo",
                   stockMinimo: p['stock_minimo'] ?? 5,
                 ),
@@ -288,18 +288,16 @@ class _InventarioViewState extends State<InventarioView> {
     Color color = Colors.green;
 
     int minimo = p['stock_minimo'] ?? 5;
-    if (stock <= minimo && stock > 0) {
-      estado = "Stock Bajo";
-      color = Colors.orange; 
-    } 
-    {
-      estado = "Stock Bajo";
-      color = Colors.orange;
-    }
 
     if (stock == 0) {
       estado = "Agotado";
       color = Colors.red;
+    } else if (stock <= minimo) {
+      estado = "Stock Bajo";
+      color = Colors.orange;
+    } else {
+      estado = "Bien";
+      color = Colors.green;
     }
 
     return Container(
@@ -307,7 +305,7 @@ class _InventarioViewState extends State<InventarioView> {
       child: Row(
         children: [
           Expanded(child: Text(p['nombre'])),
-          Expanded(child: Text("${p['id_categoria'] ?? 'Sin categoría'}")),
+          Expanded(child: Text("${p['categoria_nombre'] ?? 'Sin categoría'}")),
           Expanded(child: Text("\$${p['precio']}")),
           Expanded(child: Text("$stock")),
           Expanded(child: Text(estado, style: TextStyle(color: color)),
