@@ -32,6 +32,8 @@ class _VentasViewState extends State<VentasView> {
   //List<Categoria> categorias = [];
   List<Map<String, dynamic>> carrito = [];
 
+
+  Map<int, TextEditingController> controllers = {};
   int? categoriaSeleccionada;
 
   String metodoPago = "efectivo";
@@ -330,6 +332,16 @@ class _VentasViewState extends State<VentasView> {
                         itemBuilder: (_, i) {
                           final item = carrito[i];
 
+                          final id = item['id_producto'];
+
+                            if (!controllers.containsKey(id)) {
+                                controllers[id] = TextEditingController(
+                                  text: item['cantidad'].toString(),
+                                );
+                              } else {
+                                controllers[id]!.text = item['cantidad'].toString();
+                              }
+
                           return ListTile(
                             title: Text(item['nombre']),
                             subtitle: Text("\$${item['precio']}"),
@@ -341,7 +353,28 @@ class _VentasViewState extends State<VentasView> {
                                       cambiarCantidad(i, -1),
                                   icon: const Icon(Icons.remove),
                                 ),
-                                Text(item['cantidad'].toString()),
+                                SizedBox(
+          width: 50,
+          child: TextField(
+            controller: controllers[id],
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              final nuevaCantidad = int.tryParse(value);
+
+              if (nuevaCantidad != null && nuevaCantidad > 0) {
+                setState(() {
+      item['cantidad'] = nuevaCantidad;
+                });
+              }
+            },
+          ),
+                                ),
                                 IconButton(
                                   onPressed: () =>
                                       cambiarCantidad(i, 1),

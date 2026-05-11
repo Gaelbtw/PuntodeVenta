@@ -25,19 +25,35 @@ class _ClientesViewState extends State<ClientesView> {
     cargar();
   }
 
-  void cargar() async {
-    final data = await controller.obtenerTodos();
-    setState(() => clientes = data);
-  }
+void cargar() async {
+  final data = await controller.obtenerTodos();
 
-  void buscar(String query) async {
-    if (query.isEmpty) {
-      cargar();
-    } else {
-      final data = await controller.buscar(query);
-      setState(() => clientes = data);
+  setState(() {
+    clientes = data;
+
+    if (selectedIndex != null &&
+        selectedIndex! >= clientes.length) {
+      selectedIndex = null;
     }
+  });
+}
+
+void buscar(String query) async {
+  if (query.isEmpty) {
+    cargar();
+  } else {
+    final data = await controller.buscar(query);
+
+    setState(() {
+      clientes = data;
+
+      if (selectedIndex != null &&
+          selectedIndex! >= clientes.length) {
+        selectedIndex = null;
+      }
+    });
   }
+}
 
   void eliminar(int id) async {
     await controller.eliminar(id);
@@ -92,6 +108,55 @@ class _ClientesViewState extends State<ClientesView> {
     );
   }
 
+
+    void _mostrarFormularioEditar(Cliente cliente) {
+    final nombreCtrl = TextEditingController(text: cliente.nombre);
+    final direccionCtrl = TextEditingController(text: cliente.direccion);
+    final telefonoCtrl = TextEditingController(text: cliente.telefono?.toString());
+    final correoCtrl = TextEditingController(text: cliente.correo);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Editar Cliente"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
+            TextField(controller: direccionCtrl, decoration: const InputDecoration(labelText: "Dirección")),
+            TextField(controller: telefonoCtrl, decoration: const InputDecoration(labelText: "Teléfono")),
+            TextField(controller: correoCtrl, decoration: const InputDecoration(labelText: "Correo")),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await controller.actualizar(
+                Cliente(
+                  idCliente: cliente.idCliente,
+                  nombre: nombreCtrl.text,
+                  direccion: direccionCtrl.text,
+                  telefono: int.tryParse(telefonoCtrl.text),
+                  correo: correoCtrl.text,
+                  fechaRegistro: DateTime.now().toIso8601String(),
+                ),
+              );
+
+              Navigator.pop(context);
+              cargar();
+            },
+            child: const Text("Guardar"),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +166,20 @@ class _ClientesViewState extends State<ClientesView> {
         mostrarVolver: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            //color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x11000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
         child: Row(
           children: [
             //  IZQUIERDA
@@ -135,9 +213,10 @@ class _ClientesViewState extends State<ClientesView> {
                             hintText: "Buscar cliente...",
                             prefixIcon: const Icon(Icons.search),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: const Color(0xFFF8F6F2),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide.none,
                             ),
                           ),
@@ -208,13 +287,15 @@ class _ClientesViewState extends State<ClientesView> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: selectedIndex == null
-                    ? const Center(child: Text("Selecciona un cliente"))
-                    : _detalleCliente(clientes[selectedIndex!]),
+                child: selectedIndex == null ||
+        selectedIndex! >= clientes.length
+    ? const Center(child: Text("Selecciona un cliente"))
+    : _detalleCliente(clientes[selectedIndex!]),
               ),
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -251,6 +332,21 @@ class _ClientesViewState extends State<ClientesView> {
           icon: const Icon(Icons.point_of_sale),
           label: const Text("Nueva Venta"),
         ),
+
+        ElevatedButton.icon(
+                        onPressed: () => _mostrarFormularioEditar(clientes[selectedIndex!]),
+                        icon: const Icon(Icons.edit),
+                        label: const Text("Editar"),
+                      ),
+
+        ElevatedButton.icon(
+          onPressed: () => eliminar(c.idCliente!),
+          icon: const Icon(Icons.delete),
+          label: const Text("Eliminar"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+          ),
+        )
       ],
     );
   }

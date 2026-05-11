@@ -227,7 +227,7 @@ String _getTurno(DateTime ahora) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F7),
+      backgroundColor: const Color(0xFFFAF8F4),
       appBar: const CustomHeader(
         titulo: "Corte de Caja",
         mostrarVolver: true,
@@ -235,10 +235,24 @@ String _getTurno(DateTime ahora) {
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x11000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
+                  
                   if (turno == "Fuera de turno")
                     const Text(
                       "⚠️ Fuera de horario",
@@ -277,6 +291,7 @@ String _getTurno(DateTime ahora) {
                 ],
               ),
             ),
+          ),
     );
   }
 
