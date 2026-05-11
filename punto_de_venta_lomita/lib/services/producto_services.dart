@@ -94,6 +94,22 @@ class ProductoService {
     ''', [cantidad, idProducto]);
   }
 
+  Future<void> actualizarStock(
+    int idProducto,
+    int nuevaCantidad,
+  ) async {
+    final db = await dbHelper.database;
+
+    await db.update(
+      'Inventario',
+      {
+        'cantidad': nuevaCantidad,
+      },
+      where: 'id_producto = ?',
+      whereArgs: [idProducto],
+    );
+  }
+
   Future<void> restarStock(int idProducto, int cantidad) async {
     final db = await dbHelper.database;
 

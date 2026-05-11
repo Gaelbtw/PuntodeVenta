@@ -18,36 +18,52 @@ import 'configuracion_view.dart';
 import '../widgets/nav_bar.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  final String rol;
+
+  const HomeView({
+    super.key,
+    required this.rol,
+  });
+
+  bool get esAdmin => rol == "Admin";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F4),
-    appBar: CustomHeader(
-  titulo: "Menu",
-  mostrarVolver: false,
-  extraActions: [
-    IconButton(
-      icon: const Icon(Icons.logout, color: Colors.black87),
-      onPressed: () {
-        SessionManager.clear();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginView()),
-          (route) => false,
-        );
-      },
-    ),
-  ],
-),
+
+      appBar: CustomHeader(
+        titulo: "Menu",
+        mostrarVolver: false,
+        extraActions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black87),
+            onPressed: () {
+              SessionManager.clear();
+
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => const LoginView(),
+                ),
+                (route) => false,
+              );
+            },
+          ),
+        ],
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
+
         child: GridView.count(
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
           childAspectRatio: 1.3,
+
           children: [
+
+            // 🔥 PRODUCTOS (TODOS)
             MenuCard(
               title: "Productos",
               subtitle: "Gestion de productos",
@@ -56,22 +72,14 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ProductosView()),
+                  MaterialPageRoute(
+                    builder: (_) => const ProductosView(),
+                  ),
                 );
               },
             ),
-            MenuCard(
-              title: "Clientes",
-              subtitle: "Base de clientes",
-              icon: Icons.people,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ClientesView()),
-                );
-              },
-            ),
+
+            // 🔥 VENTAS (TODOS)
             MenuCard(
               title: "Ventas",
               subtitle: "Registrar ventas",
@@ -80,81 +88,14 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const VentasView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Inventario",
-              subtitle: "Control de inventario",
-              icon: Icons.inventory_2,
-              color: const Color(0xFFF3E1C7),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const InventarioView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Proveedores",
-              subtitle: "Gestion de proveedores",
-              icon: Icons.local_shipping,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProveedorView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Usuarios",
-              subtitle: "Gestion de usuarios",
-              icon: Icons.person,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const UsuariosView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Corte de Caja",
-              subtitle: "Resumen diario",
-              icon: Icons.attach_money,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CorteCajaView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Reportes",
-              subtitle: "Analisis",
-              icon: Icons.bar_chart,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ReporteView()),
+                  MaterialPageRoute(
+                    builder: (_) => const VentasView(),
+                  ),
                 );
               },
             ),
 
-            MenuCard(
-              title: "Compras",
-              subtitle: "Compras a proveedores",
-              icon: Icons.money,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => ComprasView()));
-              },
-            ),
+            // 🔥 CONFIGURACION (TODOS)
             MenuCard(
               title: "Configuración",
               subtitle: "Preferencias del sistema",
@@ -163,46 +104,173 @@ class HomeView extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ConfiguracionView()),
+                  MaterialPageRoute(
+                    builder: (_) => const ConfiguracionView(),
+                  ),
                 );
               },
             ),
-            MenuCard(
-              title: "Pedidos",
-              subtitle: "Gestion de pedidos",
-              icon: Icons.receipt_long,
-              color: const Color(0xFFF3E1C7),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PedidosView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Auditorias",
-              subtitle: "Seguimiento del sistema",
-              icon: Icons.fact_check_outlined,
-              color: const Color(0xFFFFEDBF),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AuditoriasView()),
-                );
-              },
-            ),
-            MenuCard(
-              title: "Base de datos",
-              subtitle: "Backup y restore",
-              icon: Icons.storage_rounded,
-              color: const Color(0xFFE8F0D5),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BaseDatosView()),
-                );
-              },
-            ),
+
+            // 🔥 SOLO ADMIN
+            if (esAdmin)
+              MenuCard(
+                title: "Clientes",
+                subtitle: "Base de clientes",
+                icon: Icons.people,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ClientesView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Inventario",
+                subtitle: "Control de inventario",
+                icon: Icons.inventory_2,
+                color: const Color(0xFFF3E1C7),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const InventarioView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Proveedores",
+                subtitle: "Gestion de proveedores",
+                icon: Icons.local_shipping,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ProveedorView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Usuarios",
+                subtitle: "Gestion de usuarios",
+                icon: Icons.person,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UsuariosView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Reportes",
+                subtitle: "Analisis",
+                icon: Icons.bar_chart,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ReporteView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Compras",
+                subtitle: "Compras a proveedores",
+                icon: Icons.money,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ComprasView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Pedidos",
+                subtitle: "Gestion de pedidos",
+                icon: Icons.receipt_long,
+                color: const Color(0xFFF3E1C7),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PedidosView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Auditorias",
+                subtitle: "Seguimiento del sistema",
+                icon: Icons.fact_check_outlined,
+                color: const Color(0xFFFFEDBF),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AuditoriasView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Base de datos",
+                subtitle: "Backup y restore",
+                icon: Icons.storage_rounded,
+                color: const Color(0xFFE8F0D5),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BaseDatosView(),
+                    ),
+                  );
+                },
+              ),
+
+            if (esAdmin)
+              MenuCard(
+                title: "Corte de Caja",
+                subtitle: "Resumen diario",
+                icon: Icons.attach_money,
+                color: const Color(0xFFEED5C4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CorteCajaView(),
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),

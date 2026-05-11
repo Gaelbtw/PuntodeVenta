@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 import '../core/session/session_manager.dart';
 import '../views/home_view.dart';
-import '../views/cajero_view.dart';
+//import '../views/cajero_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -61,17 +61,14 @@ class _LoginViewState extends State<LoginView> {
         const SnackBar(content: Text("Sesion iniciada")),
       );
 
-      if (user['rol'] == "Admin") {
-        Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeView()),
-      );
-    } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const CajeroView()),
+        MaterialPageRoute(
+          builder: (_) => HomeView(
+            rol: user['rol'],
+          ),
+        ),
       );
-    }
     }
   }
 

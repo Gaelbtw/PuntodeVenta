@@ -256,6 +256,14 @@ class _UsuariosViewState extends State<UsuariosView> {
 
             const SizedBox(height: 20),
 
+            ElevatedButton.icon(
+              onPressed: mostrarAgregarUsuario,
+              icon: const Icon(Icons.person_add),
+              label: const Text("Agregar Usuario"),
+            ),
+
+            const SizedBox(height: 20),
+
             //  TABLA
             Expanded(
               child: Container(

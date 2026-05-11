@@ -34,7 +34,15 @@ Future<List<Producto>> obtenerProductosConPrecioCompra() async {
 
   Future<List<Producto>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
-    final result = await db.query('Producto');
+
+    final result = await db.rawQuery('''
+      SELECT 
+        p.*,
+        c.nombre as categoria_nombre
+      FROM Producto p
+      LEFT JOIN Categorias c
+        ON p.id_categoria = c.id_categoria
+    ''');
 
     return result.map((e) => Producto.fromMap(e)).toList();
   }
@@ -47,6 +55,22 @@ Future<List<Producto>> obtenerProductosConPrecioCompra() async {
       producto.toMap(),
       where: 'id_producto = ?',
       whereArgs: [producto.idProducto],
+    );
+  }
+
+  Future<void> actualizarStock(
+    int idProducto,
+    int cantidadNueva,
+  ) async {
+    final db = await DatabaseHelper().database;
+
+    await db.update(
+      "Inventario",
+      {
+        "cantidad": cantidadNueva,
+      },
+      where: "id_producto = ?",
+      whereArgs: [idProducto],
     );
   }
 

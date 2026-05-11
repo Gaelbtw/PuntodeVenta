@@ -20,6 +20,7 @@ class _ProductosViewState extends State<ProductosView> {
   final nombreCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final precioCtrl = TextEditingController();
+  final precioCompraCtrl = TextEditingController();
 
   List<Producto> productos = [];
   List<Producto> filtrados = [];
@@ -65,6 +66,7 @@ class _ProductosViewState extends State<ProductosView> {
       nombreCtrl.text = producto.nombre;
       descCtrl.text = producto.descripcion;
       precioCtrl.text = producto.precio.toString();
+      precioCompraCtrl.text = producto.precioCompra?.toString() ?? "";
       estado = producto.estado;
       categoriaSeleccionada = producto.categoriaId;
     }
@@ -79,7 +81,7 @@ class _ProductosViewState extends State<ProductosView> {
               TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
               TextField(controller: descCtrl, decoration: const InputDecoration(labelText: "Descripción")),
               TextField(controller: precioCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Precio")),
-
+              TextField(controller: precioCompraCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Precio de compra")),
               // 🔥 DROPDOWN CATEGORÍAS
               DropdownButtonFormField<int>(
                 value: categoriaSeleccionada,
@@ -121,6 +123,7 @@ class _ProductosViewState extends State<ProductosView> {
                 nombre: nombreCtrl.text,
                 descripcion: descCtrl.text,
                 precio: precio,
+                precioCompra: double.tryParse(precioCompraCtrl.text) ?? 0,
                 categoriaId: categoriaSeleccionada,
                 estado: estado,
                 stockMinimo: int.parse(stockCtrl.text),
@@ -136,7 +139,14 @@ class _ProductosViewState extends State<ProductosView> {
               if (producto == null) {
                 await controller.insertar(nuevo, stock);
               } else {
+                
+
                 await controller.actualizar(nuevo);
+
+                await controller.actualizarStock(
+                  producto!.idProducto!,
+                  stock,
+                );
               }
 
               Navigator.pop(context);
@@ -193,6 +203,7 @@ class _ProductosViewState extends State<ProductosView> {
                     children: [
                       Text(p.nombre),
                       Text("\$${p.precio}"),
+                      Text(p.categoriaNombre ?? "Sin categoría"),
                       Row(
                         children: [
                           IconButton(icon: const Icon(Icons.edit), onPressed: () => mostrarFormulario(producto: p)),

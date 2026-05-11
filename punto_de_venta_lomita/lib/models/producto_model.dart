@@ -7,6 +7,7 @@ class Producto {
   final String estado;
   final double? precioCompra;
   final int? categoriaId;
+  final String? categoriaNombre;
 
   const Producto({
     this.idProducto,
@@ -17,6 +18,7 @@ class Producto {
     this.estado = "Activo",
     this.precioCompra,
     this.categoriaId,
+    this.categoriaNombre,
   });
 
   Map<String, dynamic> toMap() {
@@ -24,6 +26,7 @@ class Producto {
       'nombre': nombre,
       'descripcion': descripcion,
       'precio': precio,
+      'precio_compra': precioCompra,
       'id_categoria': categoriaId,
       'estado': estado,
       'stock_minimo': stockMinimo,
@@ -46,7 +49,8 @@ class Producto {
       stockMinimo: map["stock_minimo"] ?? 5,
       estado: map["estado"] ?? "Activo",
       precioCompra: map["precio_compra"],
-      categoriaId: map["categoria_id"],
+      categoriaId: map["id_categoria"],
+      categoriaNombre: map["categoria_nombre"],
     );
   }
 }
