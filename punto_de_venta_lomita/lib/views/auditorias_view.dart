@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../controllers/auditoria_controller.dart';
 import '../core/session/session_manager.dart';
 import '../models/auditoria_model.dart';
@@ -43,8 +46,9 @@ class _AuditoriasViewState extends State<AuditoriasView> {
           a.descripcion.toLowerCase().contains(busqueda.toLowerCase()) ||
           (a.idRegistro?.toString().contains(busqueda) ?? false);
 
-      final coincideAccion =
-          accionFiltro == "TODAS" ? true : a.accion == accionFiltro;
+      final coincideAccion = accionFiltro == "TODAS"
+          ? true
+          : a.accion == accionFiltro;
 
       return coincideBusqueda && coincideAccion;
     }).toList();
@@ -63,10 +67,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
         leading: TextButton.icon(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 18),
-          label: const Text(
-            "Volver",
-            style: TextStyle(color: Colors.black87),
-          ),
+          label: const Text("Volver", style: TextStyle(color: Colors.black87)),
         ),
         title: Row(
           children: [
@@ -100,6 +101,11 @@ class _AuditoriasViewState extends State<AuditoriasView> {
           const SizedBox(width: 16),
           _topInfo(Icons.access_time, _hora(now)),
           const SizedBox(width: 20),
+          IconButton(
+            onPressed: _exportAuditoriasPDF,
+            icon: const Icon(Icons.download, color: Colors.black87),
+            tooltip: 'Exportar auditoría',
+          ),
           Container(
             margin: const EdgeInsets.symmetric(vertical: 10),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -166,7 +172,9 @@ class _AuditoriasViewState extends State<AuditoriasView> {
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
                         fillColor: const Color(0xFFF8F6F2),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide.none,
@@ -193,10 +201,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
                             value: "CREATE",
                             child: Text("CREATE"),
                           ),
-                          DropdownMenuItem(
-                            value: "EDIT",
-                            child: Text("EDIT"),
-                          ),
+                          DropdownMenuItem(value: "EDIT", child: Text("EDIT")),
                           DropdownMenuItem(
                             value: "DELETE",
                             child: Text("DELETE"),
@@ -214,10 +219,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
               const SizedBox(height: 10),
               const Text(
                 "Realice un seguimiento de todas las acciones efectuadas en el sistema",
-                style: TextStyle(
-                  color: Color(0xFF6E6A64),
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Color(0xFF6E6A64), fontSize: 13),
               ),
               const SizedBox(height: 24),
               _tablaHeader(),
@@ -301,6 +303,61 @@ class _AuditoriasViewState extends State<AuditoriasView> {
           Expanded(flex: 24, child: Text(auditoria.descripcion)),
         ],
       ),
+    );
+  }
+
+  Future<void> _exportAuditoriasPDF() async {
+    final datos = auditoriasFiltradas;
+    if (datos.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay auditorías para exportar.')),
+      );
+      return;
+    }
+
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) {
+          return [
+            pw.Header(level: 0, text: 'Auditoría del sistema'),
+            pw.Paragraph(text: 'Generado el ${DateTime.now().toLocal()}'),
+            pw.SizedBox(height: 10),
+            pw.Table.fromTextArray(
+              headers: [
+                'Fecha y Hora',
+                'Usuario',
+                'Tabla',
+                'Acción',
+                'Registro',
+                'Descripción',
+              ],
+              data: datos.map((auditoria) {
+                return [
+                  _fechaHora(auditoria.fechaHora),
+                  auditoria.usuario,
+                  auditoria.tabla,
+                  auditoria.accion,
+                  auditoria.idRegistro?.toString() ?? '-',
+                  auditoria.descripcion,
+                ];
+              }).toList(),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              cellAlignment: pw.Alignment.centerLeft,
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColors.grey300,
+              ),
+              cellStyle: const pw.TextStyle(fontSize: 10),
+            ),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
     );
   }
 
