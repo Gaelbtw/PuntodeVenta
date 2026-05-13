@@ -2,7 +2,6 @@
 import '../core/database/database_helper.dart';
 
 class ComprasController {
-
   // 🟢 INSERTAR COMPRA COMPLETA
   Future<void> insertarCompraCompleta(
     List<Map<String, dynamic>> carrito,
@@ -26,7 +25,8 @@ class ComprasController {
       await db.insert('Detalle_Compra', {
         "id_compra": idCompra,
         "id_producto": item['id_producto'],
-        "precio": item['precio'],
+        "cantidad": item['cantidad'],
+        "precio": item['precio_compra'] ?? 0,
       });
 
       // 📦 actualizar inventario (SUMA STOCK)

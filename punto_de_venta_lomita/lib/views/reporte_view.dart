@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import '../core/database/database_helper.dart';
-import '../services/ticket_service.dart';
 import '../services/ticket_compras_service.dart' as ticket_compras_service;
+import '../services/ticket_service.dart';
 import '../widgets/nav_bar.dart';
 
 class ReporteView extends StatefulWidget {
   const ReporteView({super.key});
 
   @override
-  _ReporteViewState createState() => _ReporteViewState();
+  State<ReporteView> createState() => _ReporteViewState();
 }
 
 class _ReporteViewState extends State<ReporteView> {
@@ -30,13 +32,10 @@ class _ReporteViewState extends State<ReporteView> {
   List<Map<String, dynamic>> productosComprados = [];
   List<Map<String, dynamic>> comprasRecientes = [];
 
-  String get rangoTexto {
-    return '${_formatDate(desde)} - ${_formatDate(hasta)}';
-  }
+  String get rangoTexto => '${_formatDate(desde)} - ${_formatDate(hasta)}';
 
-  String get tituloReporte {
-    return paginaSeleccionada == 0 ? 'Reporte de Ventas' : 'Reporte de Compras';
-  }
+  String get tituloReporte =>
+      paginaSeleccionada == 0 ? 'Reporte de Ventas' : 'Reporte de Compras';
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -49,21 +48,14 @@ class _ReporteViewState extends State<ReporteView> {
   }
 
   Future<void> _cargarReportes() async {
-    setState(() {
-      cargando = true;
-    });
+    setState(() => cargando = true);
 
     try {
-      if (paginaSeleccionada == 0) {
-        await _cargarReportesVentas();
-      } else {
-        await _cargarReportesCompras();
-      }
+      await _cargarReportesVentas();
+      await _cargarReportesCompras();
     } finally {
       if (mounted) {
-        setState(() {
-          cargando = false;
-        });
+        setState(() => cargando = false);
       }
     }
   }
@@ -80,7 +72,7 @@ class _ReporteViewState extends State<ReporteView> {
         IFNULL(SUM(total), 0) as ingresos
       FROM Ventas
       WHERE date(fecha) BETWEEN date(?) AND date(?)
-    ''',
+      ''',
       [fechaInicio, fechaFin],
     );
 
@@ -94,7 +86,7 @@ class _ReporteViewState extends State<ReporteView> {
       GROUP BY Producto.nombre
       ORDER BY total DESC
       LIMIT 10
-    ''',
+      ''',
       [fechaInicio, fechaFin],
     );
 
@@ -110,8 +102,8 @@ class _ReporteViewState extends State<ReporteView> {
       LEFT JOIN Clientes ON Clientes.id_cliente = Ventas.id_cliente
       WHERE date(fecha) BETWEEN date(?) AND date(?)
       ORDER BY fecha DESC
-      LIMIT 10
-    ''',
+      LIMIT 20
+      ''',
       [fechaInicio, fechaFin],
     );
 
@@ -121,8 +113,6 @@ class _ReporteViewState extends State<ReporteView> {
       ingresosTotales = (summary.first['ingresos'] as num?)?.toDouble() ?? 0;
       productosVendidos = productos;
       ventasRecientes = ventas;
-      productosComprados = [];
-      comprasRecientes = [];
     });
   }
 
@@ -138,13 +128,15 @@ class _ReporteViewState extends State<ReporteView> {
         IFNULL(SUM(total), 0) as gasto
       FROM Compras
       WHERE date(fecha) BETWEEN date(?) AND date(?)
-    ''',
+      ''',
       [fechaInicio, fechaFin],
     );
 
     final productos = await db.rawQuery(
       '''
-      SELECT Producto.nombre, COUNT(Detalle_Compra.id_detalle) as total
+      SELECT
+        Producto.nombre,
+        SUM(IFNULL(Detalle_Compra.cantidad, 1)) as total
       FROM Detalle_Compra
       INNER JOIN Compras ON Compras.id_compra = Detalle_Compra.id_compra
       INNER JOIN Producto ON Producto.id_producto = Detalle_Compra.id_producto
@@ -152,7 +144,7 @@ class _ReporteViewState extends State<ReporteView> {
       GROUP BY Producto.nombre
       ORDER BY total DESC
       LIMIT 10
-    ''',
+      ''',
       [fechaInicio, fechaFin],
     );
 
@@ -167,8 +159,8 @@ class _ReporteViewState extends State<ReporteView> {
       LEFT JOIN Proveedores ON Proveedores.id_proveedor = Compras.id_proveedor
       WHERE date(Compras.fecha) BETWEEN date(?) AND date(?)
       ORDER BY Compras.fecha DESC
-      LIMIT 10
-    ''',
+      LIMIT 20
+      ''',
       [fechaInicio, fechaFin],
     );
 
@@ -178,8 +170,6 @@ class _ReporteViewState extends State<ReporteView> {
       gastoTotal = (summary.first['gasto'] as num?)?.toDouble() ?? 0;
       productosComprados = productos;
       comprasRecientes = compras;
-      productosVendidos = [];
-      ventasRecientes = [];
     });
   }
 
@@ -216,6 +206,160 @@ class _ReporteViewState extends State<ReporteView> {
     await _cargarReportes();
   }
 
+  Future<void> _imprimirReporte() async {
+    final pdf = pw.Document();
+    final esVentas = paginaSeleccionada == 0;
+    final productos = esVentas ? productosVendidos : productosComprados;
+    final movimientos = esVentas ? ventasRecientes : comprasRecientes;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.all(32),
+        ),
+        build: (_) => [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'La Lomita',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(tituloReporte),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.amber100,
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Text('Rango: $rangoTexto'),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 24),
+          pw.Row(
+            children: [
+              _pdfResumen(
+                esVentas ? 'Ventas realizadas' : 'Compras realizadas',
+                esVentas ? '$totalVentas' : '$totalCompras',
+              ),
+              pw.SizedBox(width: 12),
+              _pdfResumen(
+                esVentas ? 'Ingresos' : 'Gastos',
+                '\$${(esVentas ? ingresosTotales : gastoTotal).toStringAsFixed(2)}',
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 24),
+          pw.Text(
+            esVentas ? 'Productos mas vendidos' : 'Productos mas comprados',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 8),
+          _pdfProductos(productos),
+          pw.SizedBox(height: 24),
+          pw.Text(
+            esVentas ? 'Ventas registradas' : 'Compras registradas',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 8),
+          _pdfMovimientos(movimientos, esVentas),
+        ],
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
+
+  pw.Widget _pdfResumen(String label, String value) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(14),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(8),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(label, style: const pw.TextStyle(color: PdfColors.grey700)),
+            pw.SizedBox(height: 6),
+            pw.Text(
+              value,
+              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _pdfProductos(List<Map<String, dynamic>> productos) {
+    if (productos.isEmpty) {
+      return pw.Text('Sin productos en este rango.');
+    }
+
+    return pw.Table.fromTextArray(
+      headers: const ['Producto', 'Cantidad'],
+      data: productos
+          .map((item) => [item['nombre']?.toString() ?? '', '${item['total']}'])
+          .toList(),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.amber100),
+      cellAlignment: pw.Alignment.centerLeft,
+      cellPadding: const pw.EdgeInsets.all(8),
+    );
+  }
+
+  pw.Widget _pdfMovimientos(
+    List<Map<String, dynamic>> movimientos,
+    bool esVentas,
+  ) {
+    if (movimientos.isEmpty) {
+      return pw.Text('Sin movimientos en este rango.');
+    }
+
+    return pw.Table.fromTextArray(
+      headers: esVentas
+          ? const ['Folio', 'Fecha', 'Cliente', 'Pago', 'Total']
+          : const ['Folio', 'Fecha', 'Proveedor', 'Total'],
+      data: movimientos.map((item) {
+        final fecha = DateTime.tryParse(item['fecha']?.toString() ?? '');
+        if (esVentas) {
+          return [
+            '#${item['id_venta']}',
+            fecha == null ? '' : _formatDate(fecha),
+            item['cliente']?.toString() ?? 'Final',
+            item['metodo_pago']?.toString() ?? 'efectivo',
+            '\$${((item['total'] as num?)?.toDouble() ?? 0).toStringAsFixed(2)}',
+          ];
+        }
+
+        return [
+          '#${item['id_compra']}',
+          fecha == null ? '' : _formatDate(fecha),
+          item['proveedor']?.toString() ?? 'Sin proveedor',
+          '\$${((item['total'] as num?)?.toDouble() ?? 0).toStringAsFixed(2)}',
+        ];
+      }).toList(),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.amber100),
+      cellAlignment: pw.Alignment.centerLeft,
+      cellPadding: const pw.EdgeInsets.all(8),
+    );
+  }
+
   Future<void> _mostrarRecibo(
     int idVenta,
     String metodoPago,
@@ -230,7 +374,7 @@ class _ReporteViewState extends State<ReporteView> {
       FROM Detalle_Venta
       INNER JOIN Producto ON Producto.id_producto = Detalle_Venta.id_producto
       WHERE Detalle_Venta.id_venta = ?
-    ''',
+      ''',
       [idVenta],
     );
 
@@ -256,7 +400,7 @@ class _ReporteViewState extends State<ReporteView> {
                   'Cliente: ${cliente.isNotEmpty ? cliente : 'Consumidor final'}',
                 ),
                 Text('Fecha: ${_formatDate(DateTime.parse(fecha))}'),
-                Text('Método: $metodoPago'),
+                Text('Metodo: $metodoPago'),
                 const SizedBox(height: 12),
                 const Text('Productos:'),
                 const SizedBox(height: 8),
@@ -300,7 +444,6 @@ class _ReporteViewState extends State<ReporteView> {
     int idCompra,
     String proveedor,
     double total,
-    String fecha,
   ) async {
     final db = await DatabaseHelper().database;
     final detalles = await db.rawQuery(
@@ -309,14 +452,14 @@ class _ReporteViewState extends State<ReporteView> {
       FROM Detalle_Compra
       INNER JOIN Producto ON Producto.id_producto = Detalle_Compra.id_producto
       WHERE Detalle_Compra.id_compra = ?
-    ''',
+      ''',
       [idCompra],
     );
 
     final carrito = detalles.map((item) {
       return {
         'nombre': item['nombre'],
-        'cantidad': item['cantidad'],
+        'cantidad': item['cantidad'] ?? 1,
         'precio_compra': item['precio'],
       };
     }).toList();
@@ -351,28 +494,251 @@ class _ReporteViewState extends State<ReporteView> {
     }
   }
 
-  Widget _buildSummaryCard(String label, String value, Color color) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: CustomHeader(titulo: tituloReporte, mostrarVolver: true),
+      body: cargando
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x11000000),
+                      blurRadius: 18,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildToolbar(),
+                    const SizedBox(height: 20),
+                    _buildResumen(),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: 4,
+                            child: _buildProductosPanel(),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            flex: 6,
+                            child: _buildMovimientosPanel(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildToolbar() {
+    return Row(
+      children: [
+        _buildTabButton(
+          label: 'Ventas',
+          icon: Icons.point_of_sale,
+          selected: paginaSeleccionada == 0,
+          onTap: () => setState(() => paginaSeleccionada = 0),
+        ),
+        const SizedBox(width: 10),
+        _buildTabButton(
+          label: 'Compras',
+          icon: Icons.shopping_bag_outlined,
+          selected: paginaSeleccionada == 1,
+          onTap: () => setState(() => paginaSeleccionada = 1),
+        ),
+        const SizedBox(width: 18),
+        _buildRangeButton('7 dias', () => _seleccionarRango(7)),
+        const SizedBox(width: 8),
+        _buildRangeButton('30 dias', () => _seleccionarRango(30)),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: _seleccionarFechasPersonalizadas,
+          icon: const Icon(Icons.date_range, size: 18),
+          label: const Text('Rango'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.black87,
+            side: BorderSide(color: Colors.grey.shade300),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F6F2),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today_outlined, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                rangoTexto,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton.icon(
+          onPressed: _imprimirReporte,
+          icon: const Icon(Icons.print, size: 18),
+          label: const Text('Imprimir reporte'),
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: const Color(0xFFF2C500),
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabButton({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFF2C500) : const Color(0xFFF8F6F2),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRangeButton(String label, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        backgroundColor: const Color(0xFFF8F6F2),
+        foregroundColor: Colors.black87,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      child: Text(label),
+    );
+  }
+
+  Widget _buildResumen() {
+    final esVentas = paginaSeleccionada == 0;
+    return Row(
+      children: [
+        _summaryCard(
+          icon: esVentas ? Icons.receipt_long : Icons.shopping_bag_outlined,
+          label: esVentas ? 'Ventas realizadas' : 'Compras realizadas',
+          value: esVentas ? '$totalVentas' : '$totalCompras',
+          color: const Color(0xFFFFF3C4),
+        ),
+        const SizedBox(width: 16),
+        _summaryCard(
+          icon: esVentas ? Icons.payments_outlined : Icons.account_balance_wallet,
+          label: esVentas ? 'Ingresos totales' : 'Gasto total',
+          value:
+              '\$${(esVentas ? ingresosTotales : gastoTotal).toStringAsFixed(2)}',
+          color: const Color(0xFFE8F0D5),
+        ),
+        const SizedBox(width: 16),
+        _summaryCard(
+          icon: Icons.trending_up,
+          label: esVentas ? 'Ticket promedio' : 'Compra promedio',
+          value: _promedioTexto(esVentas),
+          color: const Color(0xFFF3E1C7),
+        ),
+      ],
+    );
+  }
+
+  String _promedioTexto(bool esVentas) {
+    final cantidad = esVentas ? totalVentas : totalCompras;
+    final total = esVentas ? ingresosTotales : gastoTotal;
+
+    if (cantidad == 0) return '\$0.00';
+    return '\$${(total / cantidad).toStringAsFixed(2)}';
+  }
+
+  Widget _summaryCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: Colors.black87),
             ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    value,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -381,210 +747,247 @@ class _ReporteViewState extends State<ReporteView> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomHeader(titulo: tituloReporte, mostrarVolver: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: cargando
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => _seleccionarRango(7),
-                        child: const Text('Última semana'),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () => _seleccionarRango(30),
-                        child: const Text('Último mes'),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: _seleccionarFechasPersonalizadas,
-                        child: const Text('Rango personalizado'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Rango: $rangoTexto',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      ChoiceChip(
-                        label: const Text('Ventas'),
-                        selected: paginaSeleccionada == 0,
-                        onSelected: (_) async {
-                          setState(() => paginaSeleccionada = 0);
-                          await _cargarReportes();
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: const Text('Compras'),
-                        selected: paginaSeleccionada == 1,
-                        onSelected: (_) async {
-                          setState(() => paginaSeleccionada = 1);
-                          await _cargarReportes();
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      if (paginaSeleccionada == 0)
-                        _buildSummaryCard(
-                          'Ventas',
-                          '$totalVentas',
-                          const Color(0xFFF2C500),
-                        )
-                      else
-                        _buildSummaryCard(
-                          'Compras',
-                          '$totalCompras',
-                          const Color(0xFFF2C500),
-                        ),
-                      const SizedBox(width: 12),
-                      if (paginaSeleccionada == 0)
-                        _buildSummaryCard(
-                          'Ingresos',
-                          '\$${ingresosTotales.toStringAsFixed(2)}',
-                          const Color(0xFFD9A600),
-                        )
-                      else
-                        _buildSummaryCard(
-                          'Gasto',
-                          '\$${gastoTotal.toStringAsFixed(2)}',
-                          const Color(0xFFD9A600),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    paginaSeleccionada == 0
-                        ? 'Productos más vendidos'
-                        : 'Productos más comprados',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if ((paginaSeleccionada == 0
-                          ? productosVendidos
-                          : productosComprados)
-                      .isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        paginaSeleccionada == 0
-                            ? 'No hay ventas en el rango seleccionado.'
-                            : 'No hay compras en el rango seleccionado.',
-                      ),
-                    )
-                  else
-                    Expanded(
-                      child: ListView.separated(
-                        separatorBuilder: (_, _) => const Divider(),
-                        itemCount:
-                            (paginaSeleccionada == 0
-                                    ? productosVendidos
-                                    : productosComprados)
-                                .length,
-                        itemBuilder: (_, index) {
-                          final item = (paginaSeleccionada == 0
-                              ? productosVendidos
-                              : productosComprados)[index];
-                          return ListTile(
-                            title: Text(item['nombre'] ?? ''),
-                            trailing: Text('${item['total']} uds'),
-                          );
-                        },
-                      ),
-                    ),
-                  const SizedBox(height: 16),
-                  Text(
-                    paginaSeleccionada == 0
-                        ? 'Ventas recientes'
-                        : 'Compras recientes',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child:
-                        (paginaSeleccionada == 0
-                                ? ventasRecientes
-                                : comprasRecientes)
-                            .isEmpty
-                        ? Center(
-                            child: Text(
-                              paginaSeleccionada == 0
-                                  ? 'No hay ventas recientes para este rango.'
-                                  : 'No hay compras recientes para este rango.',
-                            ),
-                          )
-                        : ListView.separated(
-                            separatorBuilder: (_, _) => const Divider(),
-                            itemCount:
-                                (paginaSeleccionada == 0
-                                        ? ventasRecientes
-                                        : comprasRecientes)
-                                    .length,
-                            itemBuilder: (_, index) {
-                              if (paginaSeleccionada == 0) {
-                                final venta = ventasRecientes[index];
-                                final fecha =
-                                    DateTime.tryParse(venta['fecha'] ?? '') ??
-                                    DateTime.now();
-                                return ListTile(
-                                  title: Text(
-                                    'Venta #${venta['id_venta']} - \$${(venta['total'] as num).toStringAsFixed(2)}',
-                                  ),
-                                  subtitle: Text(
-                                    'Fecha: ${_formatDate(fecha)} · Cliente: ${venta['cliente'] ?? 'Final'} · Pago: ${venta['metodo_pago'] ?? 'efectivo'}',
-                                  ),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.receipt_long),
-                                    onPressed: () => _mostrarRecibo(
-                                      venta['id_venta'] as int,
-                                      venta['metodo_pago'] as String? ??
-                                          'efectivo',
-                                      (venta['total'] as num).toDouble(),
-                                      venta['cliente'] as String? ?? '',
-                                      venta['fecha'] as String? ?? '',
-                                    ),
-                                  ),
-                                );
-                              }
+  Widget _buildProductosPanel() {
+    final esVentas = paginaSeleccionada == 0;
+    final productos = esVentas ? productosVendidos : productosComprados;
 
-                              final compra = comprasRecientes[index];
-                              final fecha =
-                                  DateTime.tryParse(compra['fecha'] ?? '') ??
-                                  DateTime.now();
-                              return ListTile(
-                                title: Text(
-                                  'Compra #${compra['id_compra']} - \$${(compra['total'] as num).toStringAsFixed(2)}',
-                                ),
-                                subtitle: Text(
-                                  'Fecha: ${_formatDate(fecha)} · Proveedor: ${compra['proveedor'] ?? 'Sin proveedor'}',
-                                ),
-                              );
-                            },
-                          ),
+    return _sectionPanel(
+      title: esVentas ? 'Productos mas vendidos' : 'Productos mas comprados',
+      icon: Icons.inventory_2_outlined,
+      child: productos.isEmpty
+          ? _emptyState(
+              esVentas
+                  ? 'No hay productos vendidos en este rango.'
+                  : 'No hay productos comprados en este rango.',
+            )
+          : ListView.separated(
+              itemCount: productos.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (_, index) {
+                final item = productos[index];
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                ],
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3C4),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          item['nombre']?.toString() ?? 'Producto',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Text(
+                        '${item['total']} uds',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildMovimientosPanel() {
+    final esVentas = paginaSeleccionada == 0;
+    final movimientos = esVentas ? ventasRecientes : comprasRecientes;
+
+    return _sectionPanel(
+      title: esVentas ? 'Ventas del periodo' : 'Compras del periodo',
+      icon: Icons.list_alt,
+      child: movimientos.isEmpty
+          ? _emptyState(
+              esVentas
+                  ? 'No hay ventas para este rango.'
+                  : 'No hay compras para este rango.',
+            )
+          : ListView.separated(
+              itemCount: movimientos.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (_, index) {
+                return esVentas
+                    ? _ventaTile(movimientos[index])
+                    : _compraTile(movimientos[index]);
+              },
+            ),
+    );
+  }
+
+  Widget _sectionPanel({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F6F2),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3C4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _ventaTile(Map<String, dynamic> venta) {
+    final fecha = DateTime.tryParse(venta['fecha']?.toString() ?? '');
+    final total = (venta['total'] as num?)?.toDouble() ?? 0;
+    final cliente = venta['cliente']?.toString() ?? 'Consumidor final';
+    final metodoPago = venta['metodo_pago']?.toString() ?? 'efectivo';
+
+    return _movementTile(
+      icon: Icons.point_of_sale,
+      title: 'Venta #${venta['id_venta']}',
+      subtitle:
+          '${fecha == null ? 'Sin fecha' : _formatDate(fecha)}  |  $cliente  |  $metodoPago',
+      total: total,
+      onReceipt: () => _mostrarRecibo(
+        venta['id_venta'] as int,
+        metodoPago,
+        total,
+        cliente,
+        venta['fecha']?.toString() ?? '',
+      ),
+    );
+  }
+
+  Widget _compraTile(Map<String, dynamic> compra) {
+    final fecha = DateTime.tryParse(compra['fecha']?.toString() ?? '');
+    final total = (compra['total'] as num?)?.toDouble() ?? 0;
+    final proveedor = compra['proveedor']?.toString() ?? 'Sin proveedor';
+
+    return _movementTile(
+      icon: Icons.shopping_bag_outlined,
+      title: 'Compra #${compra['id_compra']}',
+      subtitle: '${fecha == null ? 'Sin fecha' : _formatDate(fecha)}  |  $proveedor',
+      total: total,
+      onReceipt: () => _mostrarReciboCompra(
+        compra['id_compra'] as int,
+        proveedor,
+        total,
+      ),
+    );
+  }
+
+  Widget _movementTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required double total,
+    required VoidCallback onReceipt,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3C4),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '\$${total.toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Imprimir ticket',
+            onPressed: onReceipt,
+            icon: const Icon(Icons.receipt_long),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyState(String text) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.bar_chart, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 12),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

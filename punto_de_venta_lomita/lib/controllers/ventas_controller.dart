@@ -15,14 +15,14 @@ class VentasController {
   Future<void> insertarVentaCompleta(
     List<Map<String, dynamic>> carrito,
     double total,
-    String metodoPago,
-    {int? idCliente}
-  ) async {
+    String metodoPago, {
+      int? idCliente,
+  }) async {
     final db = await dbHelper.database;
 
     await db.transaction((txn) async {
       final idVenta = await txn.insert('Ventas', {
-        "id_cliente": null,
+        "id_cliente": idCliente,
         "id_usuario": SessionManager.currentUserId ?? 1,
         "fecha": DateTime.now().toIso8601String(),
         "total": total,
@@ -60,7 +60,7 @@ class VentasController {
           WHERE id_producto = ?
         ''', [
           item['cantidad'],
-          item['id_producto']
+          item['id_producto'],
         ]);
       }
 

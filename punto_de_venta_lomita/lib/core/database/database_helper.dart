@@ -90,6 +90,7 @@ class DatabaseHelper {
         id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
         id_compra INTEGER,
         id_producto INTEGER,
+        cantidad INTEGER DEFAULT 1,
         precio REAL,
         FOREIGN KEY (id_compra) REFERENCES Compras(id_compra),
         FOREIGN KEY (id_producto) REFERENCES Producto(id_producto)
@@ -234,11 +235,13 @@ class DatabaseHelper {
       await _insertarAuditoriasDemo(db);
       await _ensureVentasMetodoPagoColumn(db);
     }
+    await _ensureDetalleCompraCantidadColumn(db);
   }
 
   Future<void> _onOpen(Database db) async {
     await _ensureAuditoriasTable(db);
     await _ensureVentasMetodoPagoColumn(db);
+    await _ensureDetalleCompraCantidadColumn(db);
   }
 
   Future<void> _ensureVentasMetodoPagoColumn(Database db) async {
@@ -247,6 +250,17 @@ class DatabaseHelper {
 
     if (!columnNames.contains('metodo_pago')) {
       await db.execute('ALTER TABLE Ventas ADD COLUMN metodo_pago TEXT DEFAULT "efectivo";');
+    }
+  }
+
+  Future<void> _ensureDetalleCompraCantidadColumn(Database db) async {
+    final info = await db.rawQuery('PRAGMA table_info(Detalle_Compra)');
+    final columnNames = info.map((row) => row['name']?.toString()).toList();
+
+    if (!columnNames.contains('cantidad')) {
+      await db.execute(
+        'ALTER TABLE Detalle_Compra ADD COLUMN cantidad INTEGER DEFAULT 1;',
+      );
     }
   }
 

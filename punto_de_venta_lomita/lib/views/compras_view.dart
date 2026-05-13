@@ -111,13 +111,6 @@ class _ComprasViewState extends State<ComprasView> {
         proveedorSeleccionado!.idProveedor!,
       );
 
-      for (var item in carrito) {
-        await productoController.agregarStock(
-          item['id_producto'],
-          item['cantidad'],
-        );
-      }
-
       await imprimirTicket();
 
       setState(() {

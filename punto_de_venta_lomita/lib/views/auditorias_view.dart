@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import '../controllers/auditoria_controller.dart';
-import '../core/session/session_manager.dart';
 import '../models/auditoria_model.dart';
+import '../widgets/nav_bar.dart';
 
 const _headerStyle = TextStyle(
   fontSize: 11,
@@ -40,15 +41,15 @@ class _AuditoriasViewState extends State<AuditoriasView> {
 
   List<Auditoria> get auditoriasFiltradas {
     return auditorias.where((a) {
+      final texto = busqueda.toLowerCase();
       final coincideBusqueda =
-          a.usuario.toLowerCase().contains(busqueda.toLowerCase()) ||
-          a.tabla.toLowerCase().contains(busqueda.toLowerCase()) ||
-          a.descripcion.toLowerCase().contains(busqueda.toLowerCase()) ||
+          a.usuario.toLowerCase().contains(texto) ||
+          a.tabla.toLowerCase().contains(texto) ||
+          a.descripcion.toLowerCase().contains(texto) ||
           (a.idRegistro?.toString().contains(busqueda) ?? false);
 
-      final coincideAccion = accionFiltro == "TODAS"
-          ? true
-          : a.accion == accionFiltro;
+      final coincideAccion =
+          accionFiltro == "TODAS" ? true : a.accion == accionFiltro;
 
       return coincideBusqueda && coincideAccion;
     }).toList();
@@ -56,88 +57,17 @@ class _AuditoriasViewState extends State<AuditoriasView> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F4),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF8F4),
-        elevation: 0,
-        leadingWidth: 110,
-        leading: TextButton.icon(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 18),
-          label: const Text("Volver", style: TextStyle(color: Colors.black87)),
-        ),
-        title: Row(
-          children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF2C500),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              "La Lomita",
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const Text(
-              " | Auditorias",
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          _topInfo(Icons.calendar_today_outlined, _fechaLarga(now)),
-          const SizedBox(width: 16),
-          _topInfo(Icons.access_time, _hora(now)),
-          const SizedBox(width: 20),
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: CustomHeader(
+        titulo: "Auditorias",
+        mostrarVolver: true,
+        extraActions: [
           IconButton(
             onPressed: _exportAuditoriasPDF,
             icon: const Icon(Icons.download, color: Colors.black87),
-            tooltip: 'Exportar auditoría',
+            tooltip: "Exportar auditoria",
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFE6E0D8)),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  SessionManager.currentUserName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    color: Colors.black87,
-                  ),
-                ),
-                Text(
-                  SessionManager.currentUserRole.toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 10,
-                    color: Color(0xFFCC9A00),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
         ],
       ),
       body: Padding(
@@ -158,83 +88,20 @@ class _AuditoriasViewState extends State<AuditoriasView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 280,
-                    child: TextField(
-                      onChanged: (value) => setState(() => busqueda = value),
-                      decoration: InputDecoration(
-                        hintText: "Buscar por nombre, tabla o descripcion...",
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: const Color(0xFFF8F6F2),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F6F2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: accionFiltro,
-                        icon: const Icon(Icons.filter_list),
-                        items: const [
-                          DropdownMenuItem(
-                            value: "TODAS",
-                            child: Text("Todas las acciones"),
-                          ),
-                          DropdownMenuItem(
-                            value: "CREATE",
-                            child: Text("CREATE"),
-                          ),
-                          DropdownMenuItem(value: "EDIT", child: Text("EDIT")),
-                          DropdownMenuItem(
-                            value: "DELETE",
-                            child: Text("DELETE"),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() => accionFiltro = value);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                "Realice un seguimiento de todas las acciones efectuadas en el sistema",
-                style: TextStyle(color: Color(0xFF6E6A64), fontSize: 13),
-              ),
-              const SizedBox(height: 24),
+              _buildToolbar(),
+              const SizedBox(height: 20),
+              _buildResumen(),
+              const SizedBox(height: 20),
               _tablaHeader(),
-              const Divider(height: 1),
+              const SizedBox(height: 10),
               Expanded(
                 child: auditoriasFiltradas.isEmpty
-                    ? const Center(
-                        child: Text("No hay movimientos para mostrar"),
-                      )
+                    ? _emptyState()
                     : ListView.separated(
                         itemCount: auditoriasFiltradas.length,
-                        separatorBuilder: (_, _) => const Divider(height: 1),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (_, index) {
-                          final auditoria = auditoriasFiltradas[index];
-                          return _filaAuditoria(auditoria);
+                          return _filaAuditoria(auditoriasFiltradas[index]);
                         },
                       ),
               ),
@@ -245,33 +112,174 @@ class _AuditoriasViewState extends State<AuditoriasView> {
     );
   }
 
-  Widget _topInfo(IconData icon, String text) {
+  Widget _buildToolbar() {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFFDA9B00)),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
+        SizedBox(
+          width: 360,
+          child: TextField(
+            onChanged: (value) => setState(() => busqueda = value),
+            decoration: InputDecoration(
+              hintText: "Buscar por usuario, tabla o descripcion...",
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: const Color(0xFFF8F6F2),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F6F2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: accionFiltro,
+              icon: const Icon(Icons.filter_list),
+              items: const [
+                DropdownMenuItem(value: "TODAS", child: Text("Todas")),
+                DropdownMenuItem(value: "CREATE", child: Text("CREATE")),
+                DropdownMenuItem(value: "EDIT", child: Text("EDIT")),
+                DropdownMenuItem(value: "DELETE", child: Text("DELETE")),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => accionFiltro = value);
+              },
+            ),
+          ),
+        ),
+        const Spacer(),
+        ElevatedButton.icon(
+          onPressed: _exportAuditoriasPDF,
+          icon: const Icon(Icons.picture_as_pdf, size: 18),
+          label: const Text("Exportar PDF"),
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: const Color(0xFFF2C500),
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         ),
       ],
     );
   }
 
+  Widget _buildResumen() {
+    return Row(
+      children: [
+        _summaryCard(
+          icon: Icons.fact_check_outlined,
+          label: "Registros",
+          value: "${auditoriasFiltradas.length}",
+          color: const Color(0xFFFFF3C4),
+        ),
+        const SizedBox(width: 16),
+        _summaryCard(
+          icon: Icons.add_circle_outline,
+          label: "Altas",
+          value: "${_contarAccion('CREATE')}",
+          color: const Color(0xFFE8F0D5),
+        ),
+        const SizedBox(width: 16),
+        _summaryCard(
+          icon: Icons.edit_outlined,
+          label: "Ediciones",
+          value: "${_contarAccion('EDIT')}",
+          color: const Color(0xFFF3E1C7),
+        ),
+        const SizedBox(width: 16),
+        _summaryCard(
+          icon: Icons.delete_outline,
+          label: "Bajas",
+          value: "${_contarAccion('DELETE')}",
+          color: const Color(0xFFFFE3DF),
+        ),
+      ],
+    );
+  }
+
+  int _contarAccion(String accion) {
+    return auditoriasFiltradas.where((a) => a.accion == accion).length;
+  }
+
+  Widget _summaryCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: Colors.black87),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.grey.shade800,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _tablaHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F6F2),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: const Row(
         children: [
           Expanded(flex: 22, child: Text("FECHA Y HORA", style: _headerStyle)),
           Expanded(flex: 16, child: Text("USUARIO", style: _headerStyle)),
           Expanded(flex: 14, child: Text("TABLA", style: _headerStyle)),
           Expanded(flex: 12, child: Text("ACCION", style: _headerStyle)),
-          Expanded(flex: 12, child: Text("REGISTRO ID", style: _headerStyle)),
+          Expanded(flex: 12, child: Text("REGISTRO", style: _headerStyle)),
           Expanded(flex: 24, child: Text("DESCRIPCION", style: _headerStyle)),
         ],
       ),
@@ -280,7 +288,12 @@ class _AuditoriasViewState extends State<AuditoriasView> {
 
   Widget _filaAuditoria(Auditoria auditoria) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEDED)),
+      ),
       child: Row(
         children: [
           Expanded(flex: 22, child: Text(_fechaHora(auditoria.fechaHora))),
@@ -288,11 +301,25 @@ class _AuditoriasViewState extends State<AuditoriasView> {
           Expanded(flex: 14, child: Text(auditoria.tabla)),
           Expanded(
             flex: 12,
-            child: Text(
-              auditoria.accion,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: _colorAccion(auditoria.accion),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: _colorAccion(auditoria.accion).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  auditoria.accion,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: _colorAccion(auditoria.accion),
+                  ),
+                ),
               ),
             ),
           ),
@@ -300,7 +327,33 @@ class _AuditoriasViewState extends State<AuditoriasView> {
             flex: 12,
             child: Text(auditoria.idRegistro?.toString() ?? "-"),
           ),
-          Expanded(flex: 24, child: Text(auditoria.descripcion)),
+          Expanded(
+            flex: 24,
+            child: Text(
+              auditoria.descripcion,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.fact_check_outlined, size: 70, color: Colors.grey.shade400),
+          const SizedBox(height: 14),
+          Text(
+            "No hay movimientos para mostrar",
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -311,7 +364,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
     if (datos.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay auditorías para exportar.')),
+        const SnackBar(content: Text('No hay auditorias para exportar.')),
       );
       return;
     }
@@ -322,7 +375,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
         pageFormat: PdfPageFormat.a4,
         build: (context) {
           return [
-            pw.Header(level: 0, text: 'Auditoría del sistema'),
+            pw.Header(level: 0, text: 'Auditoria del sistema'),
             pw.Paragraph(text: 'Generado el ${DateTime.now().toLocal()}'),
             pw.SizedBox(height: 10),
             pw.Table.fromTextArray(
@@ -330,9 +383,9 @@ class _AuditoriasViewState extends State<AuditoriasView> {
                 'Fecha y Hora',
                 'Usuario',
                 'Tabla',
-                'Acción',
+                'Accion',
                 'Registro',
-                'Descripción',
+                'Descripcion',
               ],
               data: datos.map((auditoria) {
                 return [
@@ -347,7 +400,7 @@ class _AuditoriasViewState extends State<AuditoriasView> {
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               cellAlignment: pw.Alignment.centerLeft,
               headerDecoration: const pw.BoxDecoration(
-                color: PdfColors.grey300,
+                color: PdfColors.amber100,
               ),
               cellStyle: const pw.TextStyle(fontSize: 10),
             ),
@@ -385,42 +438,5 @@ class _AuditoriasViewState extends State<AuditoriasView> {
     final min = fecha.minute.toString().padLeft(2, '0');
 
     return "$dd/$mm/$yyyy $hh:$min";
-  }
-
-  String _hora(DateTime value) {
-    final hour = value.hour % 12 == 0 ? 12 : value.hour % 12;
-    final minute = value.minute.toString().padLeft(2, '0');
-    final period = value.hour >= 12 ? "p.m." : "a.m.";
-    return "$hour:$minute $period";
-  }
-
-  String _fechaLarga(DateTime value) {
-    const dias = [
-      "lunes",
-      "martes",
-      "miercoles",
-      "jueves",
-      "viernes",
-      "sabado",
-      "domingo",
-    ];
-    const meses = [
-      "enero",
-      "febrero",
-      "marzo",
-      "abril",
-      "mayo",
-      "junio",
-      "julio",
-      "agosto",
-      "septiembre",
-      "octubre",
-      "noviembre",
-      "diciembre",
-    ];
-
-    final dia = dias[value.weekday - 1];
-    final mes = meses[value.month - 1];
-    return "$dia, ${value.day} de $mes";
   }
 }
