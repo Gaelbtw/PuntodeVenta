@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/proveedor_controller.dart';
 import '../models/proveedores_model.dart';
+import '../widgets/nav_bar.dart';
 
 class ProveedorView extends StatefulWidget {
   const ProveedorView({super.key});
@@ -133,26 +134,52 @@ class _ProveedorViewState extends State<ProveedorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Proveedores")),
+      backgroundColor: const Color(0xFFFAF8F4),
+      appBar: CustomHeader(
+        titulo: "Proveedores",
+        mostrarVolver: true,
+      ),
       body: Column(
         children: [
 
           // 🔍 BUSCADOR
-          Padding(
-            padding: const EdgeInsets.all(10),
+          Row(
+          children : [
+          Expanded(
             child: TextField(
+              onChanged: buscar,
               decoration: const InputDecoration(
                 hintText: "Buscar proveedor...",
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Color(0xFFF8F6F2),
+                contentPadding: EdgeInsets.symmetric(vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(14)),
+                  borderSide: BorderSide.none,
+                ),
               ),
-              onChanged: buscar,
             ),
           ),
+        ],
+      ),
 
           // ➕ BOTÓN
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding:  const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x11000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
             child: Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
@@ -161,7 +188,9 @@ class _ProveedorViewState extends State<ProveedorView> {
                 label: const Text("Agregar Proveedor"),
               ),
             ),
+            ),
           ),
+  
 
           // 📋 LISTA
           Expanded(
@@ -197,6 +226,7 @@ class _ProveedorViewState extends State<ProveedorView> {
                     },
                   ),
           ),
+        
         ],
       ),
     );

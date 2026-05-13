@@ -148,7 +148,20 @@ class _ComprasViewState extends State<ComprasView> {
       ),
 
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            //color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x11000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
         child: Row(
           children: [
 
@@ -367,6 +380,7 @@ SizedBox(
             ),
           ],
         ),
+      ),
       ),
     );
   }
