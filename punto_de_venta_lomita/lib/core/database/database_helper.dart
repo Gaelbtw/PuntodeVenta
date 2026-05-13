@@ -113,7 +113,23 @@ class DatabaseHelper {
         id_cliente INTEGER,
         fecha DATE,
         estado TEXT,
+        total REAL DEFAULT 0,
+        fecha_entrega TEXT,
+        tipo_entrega TEXT,
         FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente)
+      );
+    ''');
+
+    await db.execute('''
+      CREATE TABLE Detalle_Pedido (
+        id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_pedido INTEGER,
+        id_producto INTEGER,
+        cantidad INTEGER,
+        precio REAL,
+        
+        FOREIGN KEY (id_pedido) REFERENCES Pedidos(id_pedido),
+        FOREIGN KEY (id_producto) REFERENCES Producto(id_producto)
       );
     ''');
 
