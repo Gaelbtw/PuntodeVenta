@@ -60,6 +60,7 @@ class _ProductosViewState extends State<ProductosView> {
 
   void mostrarFormulario({Producto? producto}) {
     final stockCtrl = TextEditingController();
+
     String estado = "Activo";
 
     if (producto != null) {
@@ -69,92 +70,231 @@ class _ProductosViewState extends State<ProductosView> {
       precioCompraCtrl.text = producto.precioCompra?.toString() ?? "";
       estado = producto.estado;
       categoriaSeleccionada = producto.categoriaId;
+      stockCtrl.text = producto.stockMinimo.toString();
+    } else {
+      nombreCtrl.clear();
+      descCtrl.clear();
+      precioCtrl.clear();
+      precioCompraCtrl.clear();
+      stockCtrl.clear();
+      categoriaSeleccionada = null;
     }
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(producto == null ? "Nuevo Producto" : "Editar Producto"),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: "Nombre")),
-              TextField(controller: descCtrl, decoration: const InputDecoration(labelText: "Descripción")),
-              TextField(controller: precioCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Precio")),
-              TextField(controller: precioCompraCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Precio de compra")),
-              // 🔥 DROPDOWN CATEGORÍAS
-              DropdownButtonFormField<int>(
-                value: categoriaSeleccionada,
-                hint: const Text("Seleccionar categoría"),
-                items: categorias.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat.idCategoria,
-                    child: Text(cat.nombre),
-                  );
-                }).toList(),
-                onChanged: (v) {
-                  categoriaSeleccionada = v;
-                },
-              ),
+      builder: (_) => Dialog(
+        backgroundColor: const Color(0xFFFAF8F4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: Container(
+          width: 520,
+          padding: const EdgeInsets.all(28),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  producto == null ? "Nuevo Producto" : "Editar Producto",
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF2D2B28),
+                  ),
+                ),
 
-              TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Stock inicial")),
+                const SizedBox(height: 8),
 
-              DropdownButton<String>(
-                value: estado,
-                items: ["Activo", "Inactivo"]
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) {
-                  estado = v!;
-                },
-              )
-            ],
+                const Text(
+                  "Complete la información del producto",
+                  style: TextStyle(color: Color(0xFF6E6A64), fontSize: 13),
+                ),
+
+                const SizedBox(height: 24),
+
+                _input(nombreCtrl, "Nombre"),
+                const SizedBox(height: 16),
+
+                _input(descCtrl, "Descripción", maxLines: 3),
+                const SizedBox(height: 16),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _input(
+                        precioCtrl,
+                        "Precio",
+                        keyboard: TextInputType.number,
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    Expanded(
+                      child: _input(
+                        precioCompraCtrl,
+                        "Precio compra",
+                        keyboard: TextInputType.number,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: DropdownButtonFormField<int>(
+                    value: categoriaSeleccionada,
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    hint: const Text("Seleccionar categoría"),
+                    items: categorias.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat.idCategoria,
+                        child: Text(cat.nombre),
+                      );
+                    }).toList(),
+                    onChanged: (v) {
+                      categoriaSeleccionada = v;
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                _input(
+                  stockCtrl,
+                  "Stock mínimo",
+                  keyboard: TextInputType.number,
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: estado,
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    items: ["Activo", "Inactivo"]
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) {
+                      estado = v!;
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        "Cancelar",
+                        style: TextStyle(color: Colors.black87),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (categoriaSeleccionada == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Selecciona una categoría"),
+                            ),
+                          );
+                          return;
+                        }
+
+                        double precio = double.tryParse(precioCtrl.text) ?? 0;
+
+                        int stock = int.tryParse(stockCtrl.text) ?? 0;
+
+                        final nuevo = Producto(
+                          idProducto: producto?.idProducto,
+                          nombre: nombreCtrl.text,
+                          descripcion: descCtrl.text,
+                          precio: precio,
+                          precioCompra:
+                              double.tryParse(precioCompraCtrl.text) ?? 0,
+                          categoriaId: categoriaSeleccionada,
+                          estado: estado,
+                          stockMinimo: stock,
+                        );
+
+                        if (producto == null) {
+                          await controller.insertar(nuevo, stock);
+                        } else {
+                          await controller.actualizar(nuevo);
+
+                          await controller.actualizarStock(
+                            producto.idProducto!,
+                            stock,
+                          );
+                        }
+
+                        Navigator.pop(context);
+                        cargar();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF2C500),
+                        foregroundColor: Colors.black87,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        "Guardar",
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancelar")),
-          ElevatedButton(
-            onPressed: () async {
-              double precio = double.parse(precioCtrl.text);
-              int stock = int.parse(stockCtrl.text);
+      ),
+    );
+  }
 
-              final nuevo = Producto(
-                idProducto: producto?.idProducto,
-                nombre: nombreCtrl.text,
-                descripcion: descCtrl.text,
-                precio: precio,
-                precioCompra: double.tryParse(precioCompraCtrl.text) ?? 0,
-                categoriaId: categoriaSeleccionada,
-                estado: estado,
-                stockMinimo: int.parse(stockCtrl.text),
-              );
-
-              if (categoriaSeleccionada == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Selecciona una categoría")),
-                );
-                return;
-              }
-
-              if (producto == null) {
-                await controller.insertar(nuevo, stock);
-              } else {
-                
-
-                await controller.actualizar(nuevo);
-
-                await controller.actualizarStock(
-                  producto!.idProducto!,
-                  stock,
-                );
-              }
-
-              Navigator.pop(context);
-              cargar();
-            },
-            child: const Text("Guardar"),
-          ),
-        ],
+  Widget _input(
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 1,
+    TextInputType keyboard = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboard,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -167,56 +307,255 @@ class _ProductosViewState extends State<ProductosView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(titulo: "Productos", mostrarVolver: true),
-      body: Column(
-        children: [
-          TextField(
-            onChanged: (v) => buscar(v),
-            decoration: const InputDecoration(
-              hintText: "Buscar producto...",
-              prefixIcon: Icon(Icons.search),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => mostrarFormulario(),
-            child: const Text("Agregar Producto"),
-          ),
-          const SizedBox(width: 10),
+      backgroundColor: const Color(0xFFFAF8F4),
 
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CategoriasView()),
-              ).then((_) => cargar()); 
-            },
-            child: const Text("Categorías"),
+      appBar: CustomHeader(titulo: "Productos", mostrarVolver: true),
+
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+
+        child: Container(
+          padding: const EdgeInsets.all(24),
+
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x11000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
-          Expanded(
-            child: GridView.builder(
-              itemCount: filtrados.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-              itemBuilder: (_, i) {
-                final p = filtrados[i];
-                return Card(
-                  child: Column(
-                    children: [
-                      Text(p.nombre),
-                      Text("\$${p.precio}"),
-                      Text(p.categoriaNombre ?? "Sin categoría"),
-                      Row(
-                        children: [
-                          IconButton(icon: const Icon(Icons.edit), onPressed: () => mostrarFormulario(producto: p)),
-                          IconButton(icon: const Icon(Icons.delete), onPressed: () => eliminar(p.idProducto!)),
-                        ],
-                      )
-                    ],
+
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+
+                children: [
+                  SizedBox(
+                    width: 320,
+
+                    child: TextField(
+                      onChanged: buscar,
+
+                      decoration: InputDecoration(
+                        hintText: "Buscar producto...",
+                        prefixIcon: const Icon(Icons.search),
+
+                        filled: true,
+                        fillColor: const Color(0xFFF8F6F2),
+
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
                   ),
-                );
-              },
-            ),
-          )
-        ],
+
+                  ElevatedButton.icon(
+                    onPressed: () => mostrarFormulario(),
+
+                    icon: const Icon(Icons.add),
+
+                    label: const Text("Nuevo producto"),
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF2C500),
+
+                      foregroundColor: Colors.black87,
+
+                      elevation: 0,
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 18,
+                      ),
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CategoriasView(),
+                        ),
+                      ).then((_) => cargar());
+                    },
+
+                    icon: const Icon(Icons.category_outlined),
+
+                    label: const Text("Categorías"),
+
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black87,
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 18,
+                      ),
+
+                      side: const BorderSide(color: Color(0xFFE5DED3)),
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "Administre los productos registrados dentro del sistema",
+                style: TextStyle(color: Color(0xFF6E6A64), fontSize: 13),
+              ),
+
+              const SizedBox(height: 24),
+
+              Expanded(
+                child: GridView.builder(
+                  itemCount: filtrados.length,
+
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 18,
+                    mainAxisSpacing: 18,
+                    childAspectRatio: 1.55,
+                  ),
+
+                  itemBuilder: (_, i) {
+                    final p = filtrados[i];
+
+                    return Container(
+                      padding: const EdgeInsets.all(20),
+
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFCFBF9),
+
+                        borderRadius: BorderRadius.circular(24),
+
+                        border: Border.all(color: const Color(0xFFF0EBE5)),
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.nombre,
+
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 17,
+                                    color: Color(0xFF2D2B28),
+                                  ),
+                                ),
+                              ),
+
+                              PopupMenuButton(
+                                color: Colors.white,
+
+                                itemBuilder: (_) => [
+                                  PopupMenuItem(
+                                    onTap: () => mostrarFormulario(producto: p),
+                                    child: const Text("Editar"),
+                                  ),
+
+                                  PopupMenuItem(
+                                    onTap: () => eliminar(p.idProducto!),
+                                    child: const Text("Eliminar"),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          Text(
+                            p.descripcion,
+
+                            maxLines: 2,
+
+                            overflow: TextOverflow.ellipsis,
+
+                            style: const TextStyle(
+                              color: Color(0xFF6F6A63),
+                              height: 1.5,
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
+
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF7D6),
+
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+
+                                child: Text(
+                                  p.categoriaNombre ?? "Sin categoría",
+
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                    color: Color(0xFFB27B00),
+                                  ),
+                                ),
+                              ),
+
+                              const Spacer(),
+
+                              Text(
+                                "\$${p.precio}",
+
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF2C2A27),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
