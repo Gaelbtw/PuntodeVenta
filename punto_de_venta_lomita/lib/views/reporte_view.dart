@@ -4,7 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../core/database/database_helper.dart';
-import '../services/ticket_compras_service.dart' as ticket_compras_service;
+import '../services/ticket_compras_service.dart';
 import '../services/ticket_service.dart';
 import '../widgets/nav_bar.dart';
 
@@ -476,7 +476,7 @@ class _ReporteViewState extends State<ReporteView> {
         return;
       }
 
-      final pdf = await ticket_compras_service.TicketService.generarTicket(
+      final pdf = await TicketComprasService.generarTicket(
         carrito: carrito,
         total: total,
         proveedor: proveedor,

@@ -134,7 +134,7 @@ class _ComprasViewState extends State<ComprasView> {
 
   // 🖨 IMPRIMIR
   Future<void> imprimirTicket() async {
-    final pdf = await TicketService.generarTicket(
+    final pdf = await TicketComprasService.generarTicket(
       carrito: carrito,
       total: total,
       proveedor: proveedorSeleccionado!.nombre,

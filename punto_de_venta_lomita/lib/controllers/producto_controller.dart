@@ -90,17 +90,19 @@ Future<List<Producto>> obtenerProductosConPrecioCompra() async {
     final db = await DatabaseHelper().database;
 
     return await db.rawQuery('''
-      SELECT 
+      SELECT
         p.id_producto,
         p.nombre,
         p.precio,
         p.categoria,
         p.estado,
         p.stock_minimo,
-        IFNULL(i.cantidad, 0) as cantidad
+        p.id_categoria,
+        IFNULL(i.cantidad, 0) as cantidad,
+        c.nombre as categoria_nombre
       FROM Producto p
-      LEFT JOIN Inventario i 
-      ON p.id_producto = i.id_producto
+      LEFT JOIN Inventario i ON p.id_producto = i.id_producto
+      LEFT JOIN Categorias c ON p.id_categoria = c.id_categoria
     ''');
   }
 

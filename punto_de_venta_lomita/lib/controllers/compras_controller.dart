@@ -1,5 +1,6 @@
 
 import '../core/database/database_helper.dart';
+import '../core/session/session_manager.dart';
 
 class ComprasController {
   // 🟢 INSERTAR COMPRA COMPLETA
@@ -15,7 +16,7 @@ class ComprasController {
       "fecha": DateTime.now().toIso8601String(),
       "total": total,
       "id_proveedor": idProveedor,
-      "id_usuario": 1, // puedes cambiar por usuario logueado
+      "id_usuario": SessionManager.currentUserId ?? 1,
     });
 
     // 2. INSERTAR DETALLE + ACTUALIZAR INVENTARIO

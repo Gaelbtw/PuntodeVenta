@@ -282,11 +282,9 @@ class _InventarioViewState extends State<InventarioView> {
                           );
 
                           await productoController
-                              .agregarStock(
+                              .actualizarStock(
                             p['id_producto'],
-                            int.parse(
-                              stockCtrl.text,
-                            ),
+                            int.tryParse(stockCtrl.text) ?? p['cantidad'],
                           );
 
                           Navigator.pop(context);

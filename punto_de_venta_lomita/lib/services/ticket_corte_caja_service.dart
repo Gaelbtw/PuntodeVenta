@@ -1,7 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-class TicketService {
+class TicketCorteCajaService {
 
   static Future<pw.Document> generarCorte({
     required String fecha,

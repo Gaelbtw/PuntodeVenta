@@ -122,10 +122,7 @@ class _CorteCajaViewState extends State<CorteCajaView> {
       return "Vespertino";
     }
 
-    final distMat = (actualMin - matIniMin).abs();
-    final distVes = (actualMin - vesIniMin).abs();
-
-    return distMat < distVes ? "Matutino" : "Vespertino";
+    return "Fuera de turno";
   }
 
   String _formatearHora(String hora) {
@@ -156,21 +153,26 @@ class _CorteCajaViewState extends State<CorteCajaView> {
   // 📊 BD
   Future<void> calcular() async {
     final db = await DatabaseHelper().database;
+    final hoy = "${ahora.year}-${_2(ahora.month)}-${_2(ahora.day)}";
 
     final totalRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Ventas",
+      "SELECT SUM(total) as total FROM Ventas WHERE fecha LIKE ?",
+      ['$hoy%'],
     );
 
     final efectivoRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'efectivo'",
+      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'efectivo' AND fecha LIKE ?",
+      ['$hoy%'],
     );
 
     final tarjetaRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'tarjeta'",
+      "SELECT SUM(total) as total FROM Ventas WHERE metodo_pago = 'tarjeta' AND fecha LIKE ?",
+      ['$hoy%'],
     );
 
     final salidasRes = await db.rawQuery(
-      "SELECT SUM(total) as total FROM Compras",
+      "SELECT SUM(total) as total FROM Compras WHERE fecha LIKE ?",
+      ['$hoy%'],
     );
 
     total = (totalRes.first["total"] as num?)?.toDouble() ?? 0;
@@ -202,7 +204,7 @@ class _CorteCajaViewState extends State<CorteCajaView> {
 
     horaCierre = _formatHora(DateTime.now());
 
-    final pdf = await TicketService.generarCorte(
+    final pdf = await TicketCorteCajaService.generarCorte(
       fecha: fecha,
       turno: turno,
       cajero: cajero,

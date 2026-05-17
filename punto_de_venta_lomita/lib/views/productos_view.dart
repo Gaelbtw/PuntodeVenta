@@ -236,11 +236,7 @@ class _ProductosViewState extends State<ProductosView> {
                           await controller.insertar(nuevo, stock);
                         } else {
                           await controller.actualizar(nuevo);
-
-                          await controller.actualizarStock(
-                            producto.idProducto!,
-                            stock,
-                          );
+                          // El stock actual se gestiona desde la vista de Inventario
                         }
 
                         Navigator.pop(context);

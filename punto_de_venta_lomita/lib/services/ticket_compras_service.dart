@@ -1,7 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-class TicketService {
+class TicketComprasService {
   static Future<pw.Document> generarTicket({
     required List<Map<String, dynamic>> carrito,
     required double total,

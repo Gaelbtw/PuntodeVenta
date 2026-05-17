@@ -14,11 +14,6 @@ class PedidosController {
   return await db.insert('Pedidos',pedido.toMap(),);
 }
 
-  Future<int> insertar(Pedidos pedido) async {
-    final db = await DatabaseHelper().database;
-    return await db.insert('Pedidos', pedido.toMap());
-  }
-
   Future<List<Pedidos>> obtenerTodos() async {
     final db = await DatabaseHelper().database;
     final result = await db.query('Pedidos');
