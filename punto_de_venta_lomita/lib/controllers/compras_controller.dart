@@ -1,9 +1,8 @@
-
 import '../core/database/database_helper.dart';
 import '../core/session/session_manager.dart';
 
 class ComprasController {
-  // 🟢 INSERTAR COMPRA COMPLETA
+  // INSERTAR COMPRA COMPLETA
   Future<void> insertarCompraCompleta(
     List<Map<String, dynamic>> carrito,
     double total,
@@ -19,10 +18,10 @@ class ComprasController {
       "id_usuario": SessionManager.currentUserId ?? 1,
     });
 
-    // 2. INSERTAR DETALLE + ACTUALIZAR INVENTARIO
+    // INSERTAR DETALLE + ACTUALIZAR INVENTARIO
     for (var item in carrito) {
 
-      // 🧾 detalle compra
+      // detalle compra
       await db.insert('Detalle_Compra', {
         "id_compra": idCompra,
         "id_producto": item['id_producto'],
@@ -30,7 +29,7 @@ class ComprasController {
         "precio": item['precio_compra'] ?? 0,
       });
 
-      // 📦 actualizar inventario (SUMA STOCK)
+      // actualizar inventario (SUMA STOCK)
       await db.rawUpdate(
         '''
         UPDATE Inventario 
@@ -45,7 +44,7 @@ class ComprasController {
     }
   }
 
-  // 📊 OBTENER TODAS LAS COMPRAS
+  // OBTENER TODAS LAS COMPRAS
   Future<List<Map<String, dynamic>>> obtenerCompras() async {
     final db = await DatabaseHelper().database;
 
@@ -57,7 +56,7 @@ class ComprasController {
     ''');
   }
 
-  // 📦 DETALLE DE UNA COMPRA
+  // DETALLE DE UNA COMPRA
   Future<List<Map<String, dynamic>>> detalleCompra(int idCompra) async {
     final db = await DatabaseHelper().database;
 
@@ -69,7 +68,7 @@ class ComprasController {
     ''', [idCompra]);
   }
 
-  // ❌ ELIMINAR COMPRA (opcional avanzado)
+  // ELIMINAR COMPRA (opcional avanzado)
   Future<void> eliminarCompra(int idCompra) async {
     final db = await DatabaseHelper().database;
 

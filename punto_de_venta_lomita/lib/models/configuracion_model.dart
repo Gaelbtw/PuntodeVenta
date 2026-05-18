@@ -15,7 +15,6 @@ class Configuracion {
     required this.fondoCaja,
   });
 
-  // 🔥 ESTE ES EL QUE TE FALTA
   factory Configuracion.fromMap(Map<String, dynamic> map) {
     return Configuracion(
       horaInicioMatutino: map['hora_inicio_matutino'] as String,
@@ -27,7 +26,6 @@ class Configuracion {
     );
   }
 
-  // 🔥 Para guardar en BD
   Map<String, dynamic> toMap() {
     return {
       'hora_inicio_matutino': horaInicioMatutino,
