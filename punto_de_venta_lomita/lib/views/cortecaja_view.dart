@@ -191,7 +191,7 @@ class _CorteCajaViewState extends State<CorteCajaView> {
 
   double get esperadoEnCaja => efectivo + fondoInicial - salidasDB;
 
-  double get diferencia => contado - esperadoEnCaja;
+  double get diferencia => contado + esperadoEnCaja;
 
   // 🧾 GENERAR CORTE
   void generarCorte() async {
@@ -460,7 +460,7 @@ class _CorteCajaViewState extends State<CorteCajaView> {
                                     child: Column(
                                       children: [
                                         const Text(
-                                          "Diferencia",
+                                          "Conteo",
                                           style: TextStyle(
                                             color: Color(0xFF6E6A64),
                                             fontSize: 13,

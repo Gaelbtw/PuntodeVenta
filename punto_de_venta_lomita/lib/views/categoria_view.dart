@@ -3,6 +3,7 @@ import '../controllers/categoria_controller.dart';
 import '../models/categoria_model.dart';
 import '../widgets/nav_bar.dart';
 
+import '../widgets/custom_alert.dart';
 class CategoriasView extends StatefulWidget {
   const CategoriasView({super.key});
 
@@ -137,13 +138,35 @@ class _CategoriasViewState extends State<CategoriasView> {
                     );
 
                     if (categoria == null) {
-                      await controller.insertar(nueva);
-                    } else {
-                      await controller.actualizar(nueva);
-                    }
+  await controller.insertar(nueva);
+} else {
+  await controller.actualizar(nueva);
+}
 
-                    Navigator.pop(context);
-                    cargar();
+Navigator.pop(context);
+
+cargar();
+
+showDialog(
+  context: context,
+  builder: (_) => CustomAlert(
+    titulo: categoria == null
+        ? "Categoría agregada"
+        : "Categoría actualizada",
+
+    mensaje: categoria == null
+        ? "La categoría ha sido agregada exitosamente."
+        : "La categoría ha sido actualizada exitosamente.",
+
+    icono: Icons.check_circle_outline,
+
+    textoConfirmar: "Aceptar",
+
+    onConfirm: () {
+      Navigator.pop(context);
+    },
+  ),
+);
                   },
 
                   style: ElevatedButton.styleFrom(
@@ -247,7 +270,7 @@ class _CategoriasViewState extends State<CategoriasView> {
                     width: 320,
 
                     child: TextField(
-                      controller: nombreCtrl,
+                
 
                       decoration: InputDecoration(
                         hintText: "Nueva categoría",
@@ -396,10 +419,44 @@ class _CategoriasViewState extends State<CategoriasView> {
                                     ),
 
                                     PopupMenuItem(
-                                      onTap: () =>
-                                          eliminar(c.idCategoria!),
-                                          child: const Text("Eliminar"),
-                                    ),
+  onTap: () {
+    Future.delayed(Duration.zero, () {
+      showDialog(
+        context: context,
+        builder: (_) => CustomAlert(
+          titulo: "Eliminar categoria",
+          mensaje:
+              "¿Seguro que deseas eliminar esta categoria?",
+          icono: Icons.warning_amber_rounded,
+          textoConfirmar: "Eliminar",
+
+          onConfirm: () async {
+            eliminar(c.idCategoria!);
+
+            Navigator.pop(context);
+
+            showDialog(
+              context: context,
+              builder: (_) => CustomAlert(
+                titulo: "Categoría eliminada",
+                mensaje:
+                    "La categoría ha sido eliminada exitosamente.",
+                icono: Icons.check_circle_outline,
+                textoConfirmar: "Aceptar",
+
+                onConfirm: () {
+                  Navigator.pop(context);
+                },
+              ),
+            );
+          },
+        ),
+      );
+    });
+  },
+
+  child: const Text("Eliminar"),
+),
                                   ],
                                 ),
                               ],

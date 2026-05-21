@@ -98,11 +98,26 @@ class _ComprasViewState extends State<ComprasView> {
   // 🧾 GUARDAR COMPRA
   void guardarCompra() async {
     if (carrito.isEmpty || proveedorSeleccionado == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Selecciona proveedor y productos")),
-      );
-      return;
-    }
+  showDialog(
+    context: context,
+    builder: (_) => CustomAlert(
+      titulo: "Datos incompletos",
+
+      mensaje:
+          "Debes seleccionar un proveedor y agregar productos a la compra.",
+
+      icono: Icons.warning_amber_rounded,
+
+      textoConfirmar: "Aceptar",
+
+      onConfirm: () {
+        Navigator.pop(context);
+      },
+    ),
+  );
+
+  return;
+}
 
     try {
       await comprasController.insertarCompraCompleta(

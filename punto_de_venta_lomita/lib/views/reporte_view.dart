@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../widgets/custom_alert.dart';
 
 import '../core/database/database_helper.dart';
 import '../services/ticket_compras_service.dart';

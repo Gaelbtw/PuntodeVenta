@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import '../core/database/database_helper.dart';
 import '../widgets/nav_bar.dart';
+import '../widgets/custom_alert.dart';
 
 class ConfiguracionView extends StatefulWidget {
   const ConfiguracionView({super.key});
@@ -70,27 +71,57 @@ class _ConfiguracionViewState extends State<ConfiguracionView> {
   }
 
   Future<void> guardar() async {
-    final db = await DatabaseHelper().database;
+  if (stockCtrl.text.trim().isEmpty ||
+      fondoCtrl.text.trim().isEmpty) {
+    showDialog(
+      context: context,
+      builder: (_) => CustomAlert(
+        titulo: "Campos incompletos",
+        mensaje:
+            "Debes completar todos los campos de configuración.",
+        icono: Icons.warning_amber_rounded,
+        textoConfirmar: "Aceptar",
 
-    await db.insert("configuracion", {
+        onConfirm: () {
+          Navigator.pop(context);
+        },
+      ),
+    );
+
+    return;
+  }
+
+  final db = await DatabaseHelper().database;
+
+  await db.insert(
+    "configuracion",
+    {
       "id": 1,
       "hora_inicio_matutino": format(matutinoInicio),
-
       "hora_fin_matutino": format(matutinoFin),
-
       "hora_inicio_vespertino": format(vespertinoInicio),
-
       "hora_fin_vespertino": format(vespertinoFin),
-
       "stock_minimo": int.parse(stockCtrl.text),
-
       "fondo_caja": double.parse(fondoCtrl.text),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    },
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Configuración guardada")));
-  }
+  showDialog(
+    context: context,
+    builder: (_) => CustomAlert(
+      titulo: "Configuración guardada",
+      mensaje:
+          "La configuración del sistema ha sido actualizada exitosamente.",
+      icono: Icons.check_circle_outline,
+      textoConfirmar: "Aceptar",
+
+      onConfirm: () {
+        Navigator.pop(context);
+      },
+    ),
+  );
+}
 
   String format(TimeOfDay t) {
     final h = t.hour.toString().padLeft(2, '0');

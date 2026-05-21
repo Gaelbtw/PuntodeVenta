@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_alert.dart';
 
 class AgregarProductoView extends StatelessWidget {
   const AgregarProductoView({super.key});
@@ -36,7 +37,20 @@ class AgregarProductoView extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  showDialog (
+                    context: context,
+                    builder: (_) => CustomAlert(
+                      titulo: "Producto agregado",
+                      mensaje: "El producto ha sido agregado exitosamente.",
+                      icono: Icons.check_circle_outline,
+                      textoConfirmar: "Aceptar",
+                      onConfirm: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
+                },
                 child: const Text("Guardar"),
               ),
             ),

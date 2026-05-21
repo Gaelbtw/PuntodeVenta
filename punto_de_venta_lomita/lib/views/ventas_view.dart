@@ -866,7 +866,7 @@ class _VentasViewState extends State<VentasView> {
 
                           const SizedBox(height: 20),
 
-                          // ✅ BOTÓN
+                          //  BOTÓN
                           SizedBox(
                             width: double.infinity,
                             height: 52,

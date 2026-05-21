@@ -4,6 +4,7 @@ import '../controllers/categoria_controller.dart';
 import '../models/producto_model.dart';
 import '../models/categoria_model.dart';
 import '../widgets/nav_bar.dart';
+import '../widgets/custom_alert.dart';
 import 'categoria_view.dart';
 
 class ProductosView extends StatefulWidget {
@@ -241,6 +242,22 @@ class _ProductosViewState extends State<ProductosView> {
 
                         Navigator.pop(context);
                         cargar();
+
+                          showDialog (
+                              context: context,
+                              builder: (_) => CustomAlert(
+                                titulo: producto == null ? "Producto agregado" : "Producto actualizado",
+                                mensaje: producto == null
+                                    ? "El producto ha sido agregado exitosamente."
+                                    : "El producto ha sido actualizado exitosamente.",
+                                icono: Icons.check_circle_outline,
+                                textoConfirmar: "Aceptar",
+                                onConfirm: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF2C500),
@@ -254,6 +271,7 @@ class _ProductosViewState extends State<ProductosView> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
+                      
                       child: const Text(
                         "Guardar",
                         style: TextStyle(fontWeight: FontWeight.w700),
@@ -479,10 +497,45 @@ class _ProductosViewState extends State<ProductosView> {
                                     child: const Text("Editar"),
                                   ),
 
-                                  PopupMenuItem(
-                                    onTap: () => eliminar(p.idProducto!),
-                                    child: const Text("Eliminar"),
-                                  ),
+                              PopupMenuItem(
+  onTap: () {
+    Future.delayed(Duration.zero, () {
+      showDialog(
+        context: context,
+        builder: (_) => CustomAlert(
+          titulo: "Eliminar producto",
+          mensaje:
+              "¿Seguro que deseas eliminar este producto?",
+          icono: Icons.warning_amber_rounded,
+          textoConfirmar: "Eliminar",
+
+          onConfirm: () async {
+            eliminar(p.idProducto!);
+
+            Navigator.pop(context);
+
+            showDialog(
+              context: context,
+              builder: (_) => CustomAlert(
+                titulo: "Producto eliminado",
+                mensaje:
+                    "El producto ha sido eliminado exitosamente.",
+                icono: Icons.check_circle_outline,
+                textoConfirmar: "Aceptar",
+
+                onConfirm: () {
+                  Navigator.pop(context);
+                },
+              ),
+            );
+          },
+        ),
+      );
+    });
+  },
+
+  child: const Text("Eliminar"),
+),
                                 ],
                               ),
                             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/proveedor_controller.dart';
 import '../models/proveedores_model.dart';
+import '../widgets/custom_alert.dart';
 import '../widgets/nav_bar.dart';
 
 class ProveedorView extends StatefulWidget {
@@ -46,308 +47,282 @@ class _ProveedorViewState extends State<ProveedorView> {
   }
 
   // 🔥 FORMULARIO
-  void abrirFormulario({Proveedores? proveedor}) {
-    final nombreCtrl = TextEditingController(text: proveedor?.nombre ?? "");
+void abrirFormulario({Proveedores? proveedor}) {
+  final nombreCtrl = TextEditingController(
+    text: proveedor?.nombre ?? "",
+  );
 
-    final rfcCtrl = TextEditingController(text: proveedor?.rfc ?? "");
+  final rfcCtrl = TextEditingController(
+    text: proveedor?.rfc ?? "",
+  );
 
-    final telefonoCtrl = TextEditingController(text: proveedor?.telefono ?? "");
+  final telefonoCtrl = TextEditingController(
+    text: proveedor?.telefono ?? "",
+  );
 
-    final direccionCtrl = TextEditingController(
-      text: proveedor?.direccion ?? "",
-    );
+  final direccionCtrl = TextEditingController(
+    text: proveedor?.direccion ?? "",
+  );
 
-    final direccionFiscalCtrl = TextEditingController(
-      text: proveedor?.direccionFiscal ?? "",
-    );
+  final direccionFiscalCtrl = TextEditingController(
+    text: proveedor?.direccionFiscal ?? "",
+  );
 
-    showDialog(
-      context: context,
+  showDialog(
+    context: context,
 
-      builder: (_) => Dialog(
-        backgroundColor: Colors.transparent,
+    builder: (_) => Dialog(
+      backgroundColor: const Color(0xFFFAF8F4),
 
-        child: Container(
-          width: 650,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
 
-          padding: const EdgeInsets.all(28),
+      child: Container(
+        width: 520,
 
-          decoration: BoxDecoration(
-            color: const Color(0xFFFAF8F4),
+        padding: const EdgeInsets.all(28),
 
-            borderRadius: BorderRadius.circular(30),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 30,
-                offset: Offset(0, 10),
+            children: [
+              Text(
+                proveedor == null
+                    ? "Nuevo Proveedor"
+                    : "Editar Proveedor",
+
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF2D2B28),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Complete la información del proveedor",
+
+                style: TextStyle(
+                  color: Color(0xFF6E6A64),
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _inputFormulario(
+                controller: nombreCtrl,
+                label: "Nombre",
+              ),
+
+              const SizedBox(height: 16),
+
+              _inputFormulario(
+                controller: rfcCtrl,
+                label: "RFC",
+              ),
+
+              const SizedBox(height: 16),
+
+              _inputFormulario(
+                controller: telefonoCtrl,
+                label: "Teléfono",
+                keyboard: TextInputType.phone,
+              ),
+
+              const SizedBox(height: 16),
+
+              _inputFormulario(
+                controller: direccionCtrl,
+                label: "Dirección",
+              ),
+
+              const SizedBox(height: 16),
+
+              _inputFormulario(
+                controller: direccionFiscalCtrl,
+                label: "Dirección Fiscal",
+                maxLines: 3,
+              ),
+
+              const SizedBox(height: 28),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+
+                    child: const Text(
+                      "Cancelar",
+
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  ElevatedButton(
+                    onPressed: () async {
+
+                      if (nombreCtrl.text.isEmpty ||
+                          rfcCtrl.text.isEmpty ||
+                          telefonoCtrl.text.isEmpty) {
+
+                        showDialog(
+                          context: context,
+                          builder: (_) => CustomAlert(
+                            titulo: "Campos incompletos",
+                            mensaje:
+                                "Completa los campos obligatorios.",
+                            icono: Icons.warning_amber_rounded,
+                            textoConfirmar: "Aceptar",
+
+                            onConfirm: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+
+                        return;
+                      }
+
+                      if (telefonoCtrl.text.length < 10) {
+
+                        showDialog(
+                          context: context,
+                          builder: (_) => CustomAlert(
+                            titulo: "Teléfono inválido",
+                            mensaje:
+                                "El número telefónico no es válido.",
+                            icono: Icons.warning_amber_rounded,
+                            textoConfirmar: "Aceptar",
+
+                            onConfirm: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+
+                        return;
+                      }
+
+                      final existentes =
+                          await controller.obtenerTodos();
+
+                      final duplicado = existentes.any(
+                        (p) =>
+                            p.nombre.toLowerCase() ==
+                                nombreCtrl.text.toLowerCase() &&
+                            p.idProveedor != proveedor?.idProveedor,
+                      );
+
+                      if (duplicado) {
+
+                        showDialog(
+                          context: context,
+                          builder: (_) => CustomAlert(
+                            titulo: "Proveedor duplicado",
+                            mensaje:
+                                "Ya existe un proveedor con ese nombre.",
+                            icono: Icons.warning_amber_rounded,
+                            textoConfirmar: "Aceptar",
+
+                            onConfirm: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+
+                        return;
+                      }
+
+                      final nuevo = Proveedores(
+                        idProveedor: proveedor?.idProveedor,
+
+                        nombre: nombreCtrl.text,
+
+                        rfc: rfcCtrl.text,
+
+                        direccion: direccionCtrl.text,
+
+                        direccionFiscal:
+                            direccionFiscalCtrl.text,
+
+                        telefono: telefonoCtrl.text,
+                      );
+
+                      if (proveedor == null) {
+                        await controller.insertar(nuevo);
+                      } else {
+                        await controller.actualizar(nuevo);
+                      }
+
+                      Navigator.pop(context);
+
+                      cargar();
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => CustomAlert(
+                          titulo: proveedor == null
+                              ? "Proveedor agregado"
+                              : "Proveedor actualizado",
+
+                          mensaje: proveedor == null
+                              ? "El proveedor ha sido agregado exitosamente."
+                              : "El proveedor ha sido actualizado exitosamente.",
+
+                          icono: Icons.check_circle_outline,
+                          textoConfirmar: "Aceptar",
+
+                          onConfirm: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF2C500),
+
+                      foregroundColor: Colors.black87,
+
+                      elevation: 0,
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 16,
+                      ),
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+
+                    child: const Text(
+                      "Guardar",
+
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-
-              children: [
-                // 🔥 HEADER
-                Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1BF),
-
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-
-                      child: const Icon(
-                        Icons.local_shipping_outlined,
-
-                        color: Color(0xFFB88300),
-
-                        size: 30,
-                      ),
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-
-                        children: [
-                          Text(
-                            proveedor == null
-                                ? "Nuevo Proveedor"
-                                : "Editar Proveedor",
-
-                            style: const TextStyle(
-                              fontSize: 28,
-
-                              fontWeight: FontWeight.w800,
-
-                              color: Color(0xFF2D2B28),
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          const Text(
-                            "Administre la información de proveedores del sistema",
-
-                            style: TextStyle(
-                              color: Color(0xFF6E6A64),
-
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
-
-                // 🔥 FORMULARIO
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-
-                  children: [
-                    SizedBox(
-                      width: 290,
-
-                      child: _inputFormulario(
-                        controller: nombreCtrl,
-
-                        label: "Nombre",
-
-                        icon: Icons.business_outlined,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 290,
-
-                      child: _inputFormulario(
-                        controller: rfcCtrl,
-
-                        label: "RFC",
-
-                        icon: Icons.badge_outlined,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 290,
-
-                      child: _inputFormulario(
-                        controller: telefonoCtrl,
-
-                        label: "Teléfono",
-
-                        icon: Icons.phone_outlined,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 290,
-
-                      child: _inputFormulario(
-                        controller: direccionCtrl,
-
-                        label: "Dirección",
-
-                        icon: Icons.location_on_outlined,
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 596,
-
-                      child: _inputFormulario(
-                        controller: direccionFiscalCtrl,
-
-                        label: "Dirección Fiscal",
-
-                        icon: Icons.receipt_long_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
-
-                // 🔥 BOTONES
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 16,
-                        ),
-                      ),
-
-                      child: const Text(
-                        "Cancelar",
-
-                        style: TextStyle(
-                          color: Colors.black87,
-
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        if (nombreCtrl.text.isEmpty ||
-                            rfcCtrl.text.isEmpty ||
-                            telefonoCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Completa los campos obligatorios"),
-                            ),
-                          );
-                          return;
-                        }
-
-                        if (telefonoCtrl.text.length < 10) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Teléfono inválido")),
-                          );
-                          return;
-                        }
-
-                        final existentes = await controller.obtenerTodos();
-
-                        final duplicado = existentes.any(
-                          (p) =>
-                              p.nombre.toLowerCase() ==
-                                  nombreCtrl.text.toLowerCase() &&
-                              p.idProveedor != proveedor?.idProveedor,
-                        );
-
-                        if (duplicado) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Proveedor duplicado"),
-                            ),
-                          );
-                          return;
-                        }
-
-                        final nuevo = Proveedores(
-                          idProveedor: proveedor?.idProveedor,
-
-                          nombre: nombreCtrl.text,
-
-                          rfc: rfcCtrl.text,
-
-                          direccion: direccionCtrl.text,
-
-                          direccionFiscal: direccionFiscalCtrl.text,
-
-                          telefono: telefonoCtrl.text,
-                        );
-
-                        if (proveedor == null) {
-                          await controller.insertar(nuevo);
-                        } else {
-                          await controller.actualizar(nuevo);
-                        }
-
-                        cargar();
-
-                        Navigator.pop(context);
-                      },
-
-                      icon: const Icon(Icons.save_outlined),
-
-                      label: Text(
-                        proveedor == null
-                            ? "Guardar Proveedor"
-                            : "Guardar Cambios",
-                      ),
-
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF2C500),
-
-                        foregroundColor: Colors.black87,
-
-                        elevation: 0,
-
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 18,
-                        ),
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // 🔥 ELIMINAR
   void eliminar(int id) async {
@@ -605,12 +580,48 @@ class _ProveedorViewState extends State<ProveedorView> {
                 ),
 
                 IconButton(
-                  onPressed: () => eliminar(p.idProveedor!),
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (_) => CustomAlert(
+        titulo: "Eliminar proveedor",
+        mensaje:
+            "¿Seguro que deseas eliminar este proveedor?",
 
-                  icon: const Icon(Icons.delete_outline),
+        icono: Icons.warning_amber_rounded,
 
-                  color: Colors.red.shade700,
-                ),
+        textoConfirmar: "Eliminar",
+
+        onConfirm: () async {
+          eliminar(p.idProveedor!);
+
+          Navigator.pop(context);
+
+          showDialog(
+            context: context,
+            builder: (_) => CustomAlert(
+              titulo: "Proveedor eliminado",
+              mensaje:
+                  "El proveedor ha sido eliminado exitosamente.",
+
+              icono: Icons.check_circle_outline,
+
+              textoConfirmar: "Aceptar",
+
+              onConfirm: () {
+                Navigator.pop(context);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  },
+
+  icon: const Icon(Icons.delete_outline),
+
+  color: Colors.red.shade700,
+),
               ],
             ),
           ),
@@ -621,70 +632,36 @@ class _ProveedorViewState extends State<ProveedorView> {
 
   // 🔥 INPUT
   Widget _inputFormulario({
-    required TextEditingController controller,
+  required TextEditingController controller,
+  required String label,
+  int maxLines = 1,
+  TextInputType keyboard = TextInputType.text,
+}) {
+  return TextField(
+    controller: controller,
+    maxLines: maxLines,
+    keyboardType: keyboard,
 
-    required String label,
+    decoration: InputDecoration(
+      hintText: label,
 
-    required IconData icon,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      filled: true,
+      fillColor: Colors.white,
 
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 18,
+      ),
 
-          child: Text(
-            label,
-
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-
-              color: Color(0xFF3C3935),
-
-              fontSize: 13,
-            ),
-          ),
-        ),
-
-        TextField(
-          controller: controller,
-
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: const Color(0xFFCC9600)),
-
-            filled: true,
-
-            fillColor: Colors.white,
-
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 18,
-              horizontal: 16,
-            ),
-
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-
-              borderSide: BorderSide.none,
-            ),
-
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-
-              borderSide: const BorderSide(color: Color(0xFFE7E1D8)),
-            ),
-
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-
-              borderSide: const BorderSide(
-                color: Color(0xFFF2C500),
-                width: 1.5,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
 }
+    
+  }
+
+  
+

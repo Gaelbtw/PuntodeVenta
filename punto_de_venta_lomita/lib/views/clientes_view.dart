@@ -4,6 +4,8 @@ import '../controllers/cliente_controller.dart';
 import '../models/cliente_model.dart';
 import '../widgets/nav_bar.dart';
 
+import '../widgets/custom_alert.dart';
+
 class ClientesView extends StatefulWidget {
   const ClientesView({super.key});
 
@@ -58,126 +60,361 @@ class _ClientesViewState extends State<ClientesView> {
     cargar();
   }
 
-  // 🟢 FORMULARIO MODAL
+  // FORMULARIO MODAL
   void _mostrarFormulario() {
-    final nombreCtrl = TextEditingController();
-    final direccionCtrl = TextEditingController();
-    final telefonoCtrl = TextEditingController();
-    final correoCtrl = TextEditingController();
+  final nombreCtrl = TextEditingController();
+  final direccionCtrl = TextEditingController();
+  final telefonoCtrl = TextEditingController();
+  final correoCtrl = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Nuevo Cliente"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nombreCtrl,
-              decoration: const InputDecoration(labelText: "Nombre"),
-            ),
-            TextField(
-              controller: direccionCtrl,
-              decoration: const InputDecoration(labelText: "Dirección"),
-            ),
-            TextField(
-              controller: telefonoCtrl,
-              decoration: const InputDecoration(labelText: "Teléfono"),
-            ),
-            TextField(
-              controller: correoCtrl,
-              decoration: const InputDecoration(labelText: "Correo"),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await controller.insertar(
-                Cliente(
-                  idCliente: null,
-                  nombre: nombreCtrl.text,
-                  direccion: direccionCtrl.text,
-                  telefono: int.tryParse(telefonoCtrl.text),
-                  correo: correoCtrl.text,
-                  fechaRegistro: DateTime.now().toIso8601String(),
-                ),
-              );
+  showDialog(
+    context: context,
+    builder: (_) => Dialog(
+      backgroundColor: const Color(0xFFFAF8F4),
 
-              Navigator.pop(context);
-              cargar();
-            },
-            child: const Text("Guardar"),
-          ),
-        ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
       ),
-    );
-  }
+
+      child: Container(
+        width: 520,
+
+        padding: const EdgeInsets.all(28),
+
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    color: Color(0xFFB27B00),
+                    size: 28,
+                  ),
+
+                  SizedBox(width: 10),
+
+                  Text(
+                    "Nuevo Cliente",
+
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2D2B28),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Complete la información del cliente",
+
+                style: TextStyle(
+                  color: Color(0xFF6E6A64),
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _input(nombreCtrl, "Nombre"),
+
+              const SizedBox(height: 16),
+
+              _input(direccionCtrl, "Dirección"),
+
+              const SizedBox(height: 16),
+
+              _input(
+                telefonoCtrl,
+                "Teléfono",
+                keyboard: TextInputType.phone,
+              ),
+
+              const SizedBox(height: 16),
+
+              _input(
+                correoCtrl,
+                "Correo",
+                keyboard: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 28),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+
+                    child: const Text(
+                      "Cancelar",
+
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  ElevatedButton(
+                    onPressed: () async {
+                      await controller.insertar(
+                        Cliente(
+                          idCliente: null,
+                          nombre: nombreCtrl.text,
+                          direccion: direccionCtrl.text,
+                          telefono: int.tryParse(
+                            telefonoCtrl.text,
+                          ),
+                          correo: correoCtrl.text,
+                          fechaRegistro:
+                              DateTime.now().toIso8601String(),
+                        ),
+                      );
+
+                      Navigator.pop(context);
+
+                      cargar();
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => CustomAlert(
+                          titulo: "Cliente agregado",
+                          mensaje:
+                              "El cliente ha sido agregado exitosamente.",
+                          icono: Icons.check_circle_outline,
+                          textoConfirmar: "Aceptar",
+
+                          onConfirm: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF2C500),
+
+                      foregroundColor: Colors.black87,
+
+                      elevation: 0,
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 16,
+                      ),
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+
+                    child: const Text(
+                      "Guardar",
+
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   void _mostrarFormularioEditar(Cliente cliente) {
-    final nombreCtrl = TextEditingController(text: cliente.nombre);
-    final direccionCtrl = TextEditingController(text: cliente.direccion);
-    final telefonoCtrl = TextEditingController(
-      text: cliente.telefono?.toString(),
-    );
-    final correoCtrl = TextEditingController(text: cliente.correo);
+  final nombreCtrl = TextEditingController(text: cliente.nombre);
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Editar Cliente"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nombreCtrl,
-              decoration: const InputDecoration(labelText: "Nombre"),
-            ),
-            TextField(
-              controller: direccionCtrl,
-              decoration: const InputDecoration(labelText: "Dirección"),
-            ),
-            TextField(
-              controller: telefonoCtrl,
-              decoration: const InputDecoration(labelText: "Teléfono"),
-            ),
-            TextField(
-              controller: correoCtrl,
-              decoration: const InputDecoration(labelText: "Correo"),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await controller.actualizar(
-                Cliente(
-                  idCliente: cliente.idCliente,
-                  nombre: nombreCtrl.text,
-                  direccion: direccionCtrl.text,
-                  telefono: int.tryParse(telefonoCtrl.text),
-                  correo: correoCtrl.text,
-                  fechaRegistro: DateTime.now().toIso8601String(),
-                ),
-              );
+  final direccionCtrl = TextEditingController(
+    text: cliente.direccion,
+  );
 
-              Navigator.pop(context);
-              cargar();
-            },
-            child: const Text("Guardar"),
-          ),
-        ],
+  final telefonoCtrl = TextEditingController(
+    text: cliente.telefono?.toString(),
+  );
+
+  final correoCtrl = TextEditingController(
+    text: cliente.correo,
+  );
+
+  showDialog(
+    context: context,
+    builder: (_) => Dialog(
+      backgroundColor: const Color(0xFFFAF8F4),
+
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
       ),
-    );
-  }
+
+      child: Container(
+        width: 520,
+
+        padding: const EdgeInsets.all(28),
+
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.edit_outlined,
+                    color: Color(0xFFB27B00),
+                    size: 28,
+                  ),
+
+                  SizedBox(width: 10),
+
+                  Text(
+                    "Editar Cliente",
+
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2D2B28),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Actualice la información del cliente",
+
+                style: TextStyle(
+                  color: Color(0xFF6E6A64),
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              _input(nombreCtrl, "Nombre"),
+
+              const SizedBox(height: 16),
+
+              _input(direccionCtrl, "Dirección"),
+
+              const SizedBox(height: 16),
+
+              _input(
+                telefonoCtrl,
+                "Teléfono",
+                keyboard: TextInputType.phone,
+              ),
+
+              const SizedBox(height: 16),
+
+              _input(
+                correoCtrl,
+                "Correo",
+                keyboard: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 28),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+
+                    child: const Text(
+                      "Cancelar",
+
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  ElevatedButton(
+                    onPressed: () async {
+                      await controller.actualizar(
+                        Cliente(
+                          idCliente: cliente.idCliente,
+                          nombre: nombreCtrl.text,
+                          direccion: direccionCtrl.text,
+                          telefono: int.tryParse(
+                            telefonoCtrl.text,
+                          ),
+                          correo: correoCtrl.text,
+                          fechaRegistro:
+                              DateTime.now().toIso8601String(),
+                        ),
+                      );
+
+                      Navigator.pop(context);
+
+                      cargar();
+
+                      showDialog(
+                        context: context,
+                        builder: (_) => CustomAlert(
+                          titulo: "Cliente actualizado",
+                          mensaje:
+                              "El cliente ha sido actualizado exitosamente.",
+                          icono: Icons.check_circle_outline,
+                          textoConfirmar: "Aceptar",
+
+                          onConfirm: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF2C500),
+
+                      foregroundColor: Colors.black87,
+
+                      elevation: 0,
+
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 16,
+                      ),
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+
+                    child: const Text(
+                      "Guardar",
+
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -514,7 +751,7 @@ class _ClientesViewState extends State<ClientesView> {
     );
   }
 
-  // 🔥 DETALLE MODERNO
+  // DETALLE MODERNO
   Widget _detalleClienteModern(Cliente c) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,24 +892,62 @@ class _ClientesViewState extends State<ClientesView> {
           height: 52,
 
           child: ElevatedButton.icon(
-            onPressed: () => eliminar(c.idCliente!),
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (_) => CustomAlert(
+        titulo: "Eliminar cliente",
 
-            icon: const Icon(Icons.delete),
+        mensaje:
+            "¿Seguro que deseas eliminar este cliente?",
 
-            label: const Text("Eliminar Cliente"),
+        icono: Icons.warning_amber_rounded,
 
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFFE5E5),
+        textoConfirmar: "Eliminar",
 
-              foregroundColor: Colors.red.shade700,
+        onConfirm: () async {
+          eliminar(c.idCliente!);
 
-              elevation: 0,
+          Navigator.pop(context);
 
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
+          showDialog(
+            context: context,
+            builder: (_) => CustomAlert(
+              titulo: "Cliente eliminado",
+
+              mensaje:
+                  "El cliente ha sido eliminado exitosamente.",
+
+              icono: Icons.check_circle_outline,
+
+              textoConfirmar: "Aceptar",
+
+              onConfirm: () {
+                Navigator.pop(context);
+              },
             ),
-          ),
+          );
+        },
+      ),
+    );
+  },
+
+  icon: const Icon(Icons.delete),
+
+  label: const Text("Eliminar Cliente"),
+
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFFFFE5E5),
+
+    foregroundColor: Colors.red.shade700,
+
+    elevation: 0,
+
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+    ),
+  ),
+),
         ),
       ],
     );
@@ -794,4 +1069,35 @@ class _ClientesViewState extends State<ClientesView> {
 
     return "${date.day}/${date.month}/${date.year}";
   }
+}
+
+// inputs 
+Widget _input(
+  TextEditingController controller,
+  String hint, {
+  int maxLines = 1,
+  TextInputType keyboard = TextInputType.text,
+}) {
+  return TextField(
+    controller: controller,
+    maxLines: maxLines,
+    keyboardType: keyboard,
+
+    decoration: InputDecoration(
+      hintText: hint,
+
+      filled: true,
+      fillColor: Colors.white,
+
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 18,
+      ),
+
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
 }

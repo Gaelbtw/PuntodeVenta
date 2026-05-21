@@ -35,9 +35,14 @@ class HomeView extends StatelessWidget {
       appBar: CustomHeader(
         titulo: "Menu",
         mostrarVolver: false,
+
         extraActions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black87),
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.black87,
+            ),
+
             onPressed: () {
               SessionManager.clear();
 
@@ -54,11 +59,15 @@ class HomeView extends StatelessWidget {
 
       body: Padding(
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-child: Container(
+
+        child: Container(
           padding: const EdgeInsets.all(24),
+
           decoration: BoxDecoration(
             color: Colors.white,
+
             borderRadius: BorderRadius.circular(28),
+
             boxShadow: const [
               BoxShadow(
                 color: Color(0x11000000),
@@ -68,225 +77,261 @@ child: Container(
             ],
           ),
 
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.3,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
 
-          children: [
-  
-            // 🔥 PRODUCTOS (TODOS)
-            MenuCard(
-              title: "Productos",
-              subtitle: "Gestion de productos",
-              icon: Icons.inventory,
-              color: const Color(0xFFF3E1C7),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ProductosView(),
+              int columnas = 2;
+
+              if (constraints.maxWidth >= 700) {
+                columnas = 4;
+              }
+
+              if (constraints.maxWidth >= 1100) {
+                columnas = 5;
+              }
+
+              return GridView.count(
+                crossAxisCount: columnas,
+
+                mainAxisSpacing: 18,
+                crossAxisSpacing: 18,
+
+                childAspectRatio:
+                    constraints.maxWidth >= 700 ? 1.15 : 1.3,
+
+                children: [
+
+                  // PRODUCTOS
+                  if (esAdmin)
+                  MenuCard(
+                    title: "Productos",
+                    subtitle: "Gestion de productos",
+                    icon: Icons.inventory,
+                    color: const Color(0xFFF3E1C7),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProductosView(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
 
-            // 🔥 VENTAS (TODOS)
-            MenuCard(
-              title: "Ventas",
-              subtitle: "Registrar ventas",
-              icon: Icons.point_of_sale,
-              color: const Color(0xFFF3E1C7),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const VentasView(),
+                  // VENTAS
+                  MenuCard(
+                    title: "Ventas",
+                    subtitle: "Registrar ventas",
+                    icon: Icons.point_of_sale,
+                    color: const Color(0xFFF7D6BF),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const VentasView(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
 
-            // 🔥 CONFIGURACION (TODOS)
-            MenuCard(
-              title: "Configuración",
-              subtitle: "Preferencias del sistema",
-              icon: Icons.settings,
-              color: const Color(0xFFEED5C4),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ConfiguracionView(),
+                  // CONFIGURACION
+                  if (esAdmin)
+                  MenuCard(
+                    title: "Configuración",
+                    subtitle: "Preferencias del sistema",
+                    icon: Icons.settings,
+                    color: const Color(0xFFD9E6F2),
+
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ConfiguracionView(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
 
-            // 🔥 SOLO ADMIN
-            if (esAdmin)
-              MenuCard(
-                title: "Clientes",
-                subtitle: "Base de clientes",
-                icon: Icons.people,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ClientesView(),
-                    ),
-                  );
-                },
-              ),
+                  // CLIENTES
+                    MenuCard(
+                      title: "Clientes",
+                      subtitle: "Base de clientes",
+                      icon: Icons.people,
+                      color: const Color(0xFFEADCF8),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Inventario",
-                subtitle: "Control de inventario",
-                icon: Icons.inventory_2,
-                color: const Color(0xFFF3E1C7),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const InventarioView(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ClientesView(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Proveedores",
-                subtitle: "Gestion de proveedores",
-                icon: Icons.local_shipping,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ProveedorView(),
-                    ),
-                  );
-                },
-              ),
+                  // INVENTARIO
+                    MenuCard(
+                      title: "Inventario",
+                      subtitle: "Control de inventario",
+                      icon: Icons.inventory_2,
+                      color: const Color(0xFFDDF3E4),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Usuarios",
-                subtitle: "Gestion de usuarios",
-                icon: Icons.person,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const UsuariosView(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const InventarioView(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Reportes",
-                subtitle: "Analisis",
-                icon: Icons.bar_chart,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ReporteView(),
-                    ),
-                  );
-                },
-              ),
+                  // PROVEEDORES
+                  if (esAdmin)
+                    MenuCard(
+                      title: "Proveedores",
+                      subtitle: "Gestion de proveedores",
+                      icon: Icons.local_shipping,
+                      color: const Color(0xFFFFE0CC),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Compras",
-                subtitle: "Compras a proveedores",
-                icon: Icons.money,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ComprasView(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ProveedorView(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Pedidos",
-                subtitle: "Gestion de pedidos",
-                icon: Icons.receipt_long,
-                color: const Color(0xFFF3E1C7),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PedidosView(),
-                    ),
-                  );
-                },
-              ),
+                  // USUARIOS
+                  if (esAdmin)
+                    MenuCard(
+                      title: "Usuarios",
+                      subtitle: "Gestion de usuarios",
+                      icon: Icons.person,
+                      color: const Color(0xFFD7EAF7),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Auditorias",
-                subtitle: "Seguimiento del sistema",
-                icon: Icons.fact_check_outlined,
-                color: const Color(0xFFFFEDBF),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AuditoriasView(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const UsuariosView(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Base de datos",
-                subtitle: "Backup y restore",
-                icon: Icons.storage_rounded,
-                color: const Color(0xFFE8F0D5),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BaseDatosView(),
-                    ),
-                  );
-                },
-              ),
+                  // REPORTES
+                    MenuCard(
+                      title: "Reportes",
+                      subtitle: "Analisis",
+                      icon: Icons.bar_chart,
+                      color: const Color(0xFFFFE7B8),
 
-            if (esAdmin)
-              MenuCard(
-                title: "Corte de Caja",
-                subtitle: "Resumen diario",
-                icon: Icons.attach_money,
-                color: const Color(0xFFEED5C4),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CorteCajaView(),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ReporteView(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-          ],
+
+                  // COMPRAS
+                    MenuCard(
+                      title: "Compras",
+                      subtitle: "Compras a proveedores",
+                      icon: Icons.money,
+                      color: const Color(0xFFFFD9D9),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ComprasView(),
+                          ),
+                        );
+                      },
+                    ),
+
+                  // PEDIDOS
+                    MenuCard(
+                      title: "Pedidos",
+                      subtitle: "Gestion de pedidos",
+                      icon: Icons.receipt_long,
+                      color: const Color(0xFFE2F0CB),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PedidosView(),
+                          ),
+                        );
+                      },
+                    ),
+
+                  // AUDITORIAS
+                  if (esAdmin)
+                    MenuCard(
+                      title: "Auditorias",
+                      subtitle: "Seguimiento del sistema",
+                      icon: Icons.fact_check_outlined,
+                      color: const Color(0xFFFFEDBF),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AuditoriasView(),
+                          ),
+                        );
+                      },
+                    ),
+
+                  // BASE DE DATOS
+                  if (esAdmin)
+                    MenuCard(
+                      title: "Base de datos",
+                      subtitle: "Backup y restore",
+                      icon: Icons.storage_rounded,
+                      color: const Color(0xFFDCEFD7),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BaseDatosView(),
+                          ),
+                        );
+                      },
+                    ),
+
+                  // CORTE DE CAJA
+                    MenuCard(
+                      title: "Corte de Caja",
+                      subtitle: "Resumen diario",
+                      icon: Icons.attach_money,
+                      color: const Color(0xFFFFDFC7),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CorteCajaView(),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
         ),
-      ),
       ),
     );
   }
